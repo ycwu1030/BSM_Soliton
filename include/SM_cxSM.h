@@ -3,7 +3,7 @@
  * @Author       : Yongcheng Wu
  * @Date         : 2020-01-27 14:19:33
  * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-01-27 18:02:30
+ * @LastEditTime : 2020-01-29 17:03:18
  */
 #ifndef CXSM_H
 #define CXSM_H
@@ -76,6 +76,10 @@ public:
 
 // The Potential
     double Vtot(double phiH, double phiS, double phiA);
+    double dVdH(double phiH, double phiS, double phiA);
+    double dVdS(double phiH, double phiS, double phiA);
+    double dVdA(double phiH, double phiS, double phiA);
+    double Get_V0_global();
 
 //Hessian Matrix
     void GetHessian(double phiH, double phiS, double phiA);

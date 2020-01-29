@@ -3,7 +3,7 @@
  * @Author       : Yongcheng Wu
  * @Date         : 2020-01-27 14:19:34
  * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-01-27 18:21:46
+ * @LastEditTime : 2020-01-29 17:10:47
  */
 #include <iostream>
 #include <cmath>
@@ -83,6 +83,37 @@ double CXSM::Vtot(double phiH, double phiS, double phiA)
     vtot += del1/4/sqrt(2)*h2*phiS;
     vtot += lam/4*h4 + (A2+s2)*(d2*(A2+s2)+2*del2*h2)/16;
     return vtot;
+}
+double CXSM::Get_V0_global()
+{
+    return Vtot(vev,VS,0);
+}
+double CXSM::dVdH(double phiH, double phiS, double phiA)
+{
+    double dvtot = 0;
+    double h2 = phiH*phiH;
+    double s2 = phiS*phiS;
+    double A2 = phiA*phiA;
+    dvtot = phiH*(del2*A2+4*(h2*lam+mu2)+del2*s2+sqrt(2)*del1*phiS)/4.0;
+    return dvtot;
+}
+double CXSM::dVdS(double phiH, double phiS, double phiA)
+{
+    double dvtot = 0;
+    double h2 = phiH*phiH;
+    double s2 = phiS*phiS;
+    double A2 = phiA*phiA;
+    dvtot = (2*d2*phiS*(A2+s2)+4*b2*phiS+h2*(sqrt(2)*del1+2*del2*phiS))/8.0;
+    return dvtot;
+}
+double CXSM::dVdA(double phiH, double phiS, double phiA)
+{
+    double dvtot = 0;
+    double h2 = phiH*phiH;
+    double s2 = phiS*phiS;
+    double A2 = phiA*phiA;
+    dvtot = phiA*(A2*d2+2*b2+d2*s2+del2*h2)/4.0;
+    return dvtot;
 }
 
 bool CXSM::CheckStability()
