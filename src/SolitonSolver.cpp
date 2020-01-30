@@ -3,9 +3,10 @@
  * @Author       : Yongcheng Wu
  * @Date         : 2020-01-28 12:46:03
  * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-01-29 17:59:33
+ * @LastEditTime : 2020-01-30 13:50:39
  */
 #include <iostream>
+#include <fstream>
 #include <cmath>
 #include "SolitonSolver.h"
 
@@ -76,29 +77,29 @@ void SolitonSolver::_Initiative()
     {
         _EnergyDensity.push_back(0);
     }
-    cout<<"Initial: "<<endl;
-    PrintSolitonSolution();
-    cout<<_TotalEnergy_Last<<"\t"<<_TotalEnergy_Current<<endl;
+    // cout<<"Initial: "<<endl;
+    // PrintSolitonSolution();
+    // cout<<_TotalEnergy_Last<<"\t"<<_TotalEnergy_Current<<endl;
 }
 void SolitonSolver::_Iterating()
 {
-    for (size_t i = 0; i < _MAXROUNDS; i++)
+    int SUBROUNDS = 10000;
+    for (size_t i = 0; i < _MAXROUNDS/SUBROUNDS; i++)
     {
-        // Store the results from last step
-        if (((i+1)%1000==0)) 
+        cout<<"ROUND: "<<i<<"*"<<SUBROUNDS<<endl;
+        for (size_t k = 0; k < SUBROUNDS; k++)
         {
-            cout<<"ROUND: "<<i+1<<endl;
-            PrintSolitonSolution();
-        }
-        for (size_t j = 0; j < _NPoint; j++)
-        {
-            _FieldValue_NoDim_Last[j] = _FieldValue_NoDim_Current[j];
-        }
-        // Iterate again;
-        for (size_t j = 1; j < _NPoint-1; j++)
-        {
-            _FieldValue_NoDim_Current[j] = _FieldValue_NoDim_Last[j] + _del_t*(_FieldValue_NoDim_Last[j+1]+_FieldValue_NoDim_Last[j-1]-2*_FieldValue_NoDim_Last[j]);
-            _FieldValue_NoDim_Current[j] = _FieldValue_NoDim_Current[j] - _DeltaT*_dpotential(_FieldValue_NoDim_Last[j]*_Scaling,_param)/pow(_Scaling,3);
+            // Store the results from last step
+            for (size_t j = 0; j < _NPoint; j++)
+            {
+                _FieldValue_NoDim_Last[j] = _FieldValue_NoDim_Current[j];
+            }
+            // Iterate again;
+            for (size_t j = 1; j < _NPoint-1; j++)
+            {
+                _FieldValue_NoDim_Current[j] = _FieldValue_NoDim_Last[j] + _del_t*(_FieldValue_NoDim_Last[j+1]+_FieldValue_NoDim_Last[j-1]-2*_FieldValue_NoDim_Last[j]);
+                _FieldValue_NoDim_Current[j] = _FieldValue_NoDim_Current[j] - _DeltaT*_dpotential(_FieldValue_NoDim_Last[j]*_Scaling,_param)/pow(_Scaling,3);
+            }
         }
         // Calculate the Energy_density/Energy, checking the improvement, if too small, jump out of the loop
         _TotalEnergy_Last = _TotalEnergy_Current;
@@ -107,15 +108,15 @@ void SolitonSolver::_Iterating()
         {
             _TotalEnergy_Current += _DeltaZ/_Scaling*(_EnergyDensity[j] = _Calc_EnergyDensity(_FieldValue_NoDim_Current[j],_FieldValue_NoDim_Current[j+1]));
         }
-        // if (_TotalEnergy_Last != 0)
-        // {
-        //     cout<<_TotalEnergy_Last<<"\t"<<_TotalEnergy_Current<<endl;
-        //     double rel = abs(_TotalEnergy_Current-_TotalEnergy_Last)/_TotalEnergy_Last;
-        //     if (rel < _energy_rel_error)
-        //     {
-        //         break;
-        //     }
-        // }
+        if (_TotalEnergy_Last != 0)
+        {
+            double rel = abs(_TotalEnergy_Current-_TotalEnergy_Last)/_TotalEnergy_Last;
+            cout<<"Last: "<<_TotalEnergy_Last<<"  Current: "<<_TotalEnergy_Current<<"  rel_error: "<<rel<<endl;
+            if (rel < _energy_rel_error)
+            {
+                break;
+            }
+        }
     }
 }
 bool SolitonSolver::Solve()
@@ -174,4 +175,33 @@ void SolitonSolver::PrintSolitonSolution()
         
     }
     cout<<"Total Energy is: "<<_TotalEnergy_Current<<endl;
+}
+void SolitonSolver::DumpSolitonSolution(string filename)
+{
+    ofstream output(filename.c_str());
+    output<<"Position_ID\tPosition\t";
+    for (size_t i = 0; i < _NFieldDim; i++)
+    {
+        output<<"Field_"<<i+1<<"\t";
+    }
+    output<<"Energy_Density"<<endl;
+    for (size_t i = 0; i < _NPoint; i++)
+    {
+        output<<_GridPositions_NoDim[i]<<"\t";
+        output<<_GridPositions_NoDim[i]/_Scaling<<"\t";
+        for (size_t j = 0; j < _NFieldDim; j++)
+        {
+            output<<_FieldValue_NoDim_Current[i][j]*_Scaling<<"\t";
+        }
+        if (i < _NGrid)
+        {
+            output<<_EnergyDensity[i]<<endl;
+        }
+        else
+        {
+            output<<endl;
+        }
+    }
+    output<<"Total Energy is: "<<_TotalEnergy_Current<<endl;
+    output.close();
 }
