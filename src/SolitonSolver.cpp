@@ -3,7 +3,7 @@
  * @Author       : Yongcheng Wu
  * @Date         : 2020-01-28 12:46:03
  * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-01-30 13:50:39
+ * @LastEditTime : 2020-01-30 22:05:22
  */
 #include <iostream>
 #include <fstream>
@@ -83,10 +83,12 @@ void SolitonSolver::_Initiative()
 }
 void SolitonSolver::_Iterating()
 {
-    int SUBROUNDS = 10000;
+    int SUBROUNDS = 1000;
     for (size_t i = 0; i < _MAXROUNDS/SUBROUNDS; i++)
     {
+        #if VERBOSE == 1
         cout<<"ROUND: "<<i<<"*"<<SUBROUNDS<<endl;
+        #endif
         for (size_t k = 0; k < SUBROUNDS; k++)
         {
             // Store the results from last step
@@ -111,7 +113,9 @@ void SolitonSolver::_Iterating()
         if (_TotalEnergy_Last != 0)
         {
             double rel = abs(_TotalEnergy_Current-_TotalEnergy_Last)/_TotalEnergy_Last;
+            #if VERBOSE == 1
             cout<<"Last: "<<_TotalEnergy_Last<<"  Current: "<<_TotalEnergy_Current<<"  rel_error: "<<rel<<endl;
+            #endif
             if (rel < _energy_rel_error)
             {
                 break;
@@ -204,4 +208,14 @@ void SolitonSolver::DumpSolitonSolution(string filename)
     }
     output<<"Total Energy is: "<<_TotalEnergy_Current<<endl;
     output.close();
+}
+double SolitonSolver::GetTension()
+{
+    double tension = 0;
+    for (size_t i = 0; i < _NGrid; i++)
+    {
+        VD dfield_dZ = (_FieldValue_NoDim_Current[i+1]-_FieldValue_NoDim_Current[i])/_DeltaZ;
+        tension += dfield_dZ*dfield_dZ * _DeltaZ;
+    }
+    return tension*pow(_Scaling,3);
 }

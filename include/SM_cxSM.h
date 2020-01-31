@@ -3,7 +3,7 @@
  * @Author       : Yongcheng Wu
  * @Date         : 2020-01-27 14:19:33
  * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-01-29 17:03:18
+ * @LastEditTime : 2020-01-30 14:00:17
  */
 #ifndef CXSM_H
 #define CXSM_H
@@ -62,6 +62,23 @@ public:
 
     double MW2;
     
+};
+
+class Toy
+{
+// Toy model following Brawn's thesis Sec. E.2
+private:
+    double _lambda;
+    double _eta;
+public:
+    Toy(){};
+    Toy(double lambda, double eta);
+    ~Toy(){};
+
+    double Vtot(double phi);
+    double dVdphi(double phi);
+    double Get_V0_global();
+
 };
 
 

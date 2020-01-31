@@ -3,7 +3,7 @@
  * @Author       : Yongcheng Wu
  * @Date         : 2020-01-28 12:19:40
  * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-01-30 13:48:33
+ * @LastEditTime : 2020-01-30 22:01:51
  */
 #ifndef SolitonSolver_H
 #define SolitonSolver_H
@@ -23,7 +23,7 @@ class SolitonSolver
 {
 private:
     const int _NSpaceDim = 1;
-    const double _energy_rel_error = 1e-20;
+    const double _energy_rel_error = 1e-10;
     const double _LEFT = -25;
     const double _RIGHT = 25;
     const double _del_t = 0.05;
@@ -69,6 +69,9 @@ public:
 
     bool Solve();
 
+    double GetTotalEnergy(){return _TotalEnergy_Current;}
+    double GetTension();
+    
     void PrintSolitonSolution();
     void DumpSolitonSolution(std::string filename);
 

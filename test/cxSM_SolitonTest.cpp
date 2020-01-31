@@ -3,7 +3,7 @@
  * @Author       : Yongcheng Wu
  * @Date         : 2020-01-27 17:56:36
  * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-01-30 13:42:11
+ * @LastEditTime : 2020-01-30 21:19:02
  */
 #include "SM_cxSM.h"
 #include "SolitonSolver.h"
@@ -38,7 +38,7 @@ int main(int argc, char const *argv[])
     cout<<"Unitarity: "<<model.CheckUnitarity()<<endl;
     cout<<"Global Min: "<<model.CheckGlobalMinimum()<<endl;
 
-    SolitonSolver SS(2,50);
+    SolitonSolver SS(2,100);
     SS.SetPotentials(V,dV);
     SS.SetParam(&model);
     VD LEFT = {model.vev, -model.VS};
@@ -48,6 +48,6 @@ int main(int argc, char const *argv[])
     SS.SetV0Global(model.Get_V0_global());
     SS.Solve();
     SS.PrintSolitonSolution();
-    SS.DumpSolitonSolution("solution.dat");
+    SS.DumpSolitonSolution("solution_cxSM.dat");
     return 0;
 }

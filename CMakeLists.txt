@@ -36,4 +36,7 @@ SET_TARGET_PROPERTIES(cxSMSoliton_shared PROPERTIES
 
 SET(cxSMSoliton_LIBRARY cxSMSoliton_shared)
 
+add_executable(Scan cxSM_Scan.cpp)
+target_link_libraries(Scan ${cxSMSoliton_LIBRARY})
+
 add_subdirectory(test)

@@ -3,7 +3,7 @@
  * @Author       : Yongcheng Wu
  * @Date         : 2020-01-27 14:19:34
  * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-01-29 17:10:47
+ * @LastEditTime : 2020-01-30 14:02:47
  */
 #include <iostream>
 #include <cmath>
@@ -350,4 +350,24 @@ bool CXSM::CheckGlobalMinimum()
         cout<<"Error in finding the input vacuum"<<endl;
         return false;
     } 
+}
+
+
+Toy::Toy(double lambda, double eta)
+{
+    _lambda = lambda;
+    _eta = eta;
+}
+
+double Toy::Vtot(double phi)
+{
+    return _lambda/4.0*pow(phi*phi-_eta*_eta,2);
+}
+double Toy::dVdphi(double phi)
+{
+    return _lambda*phi*(phi*phi-_eta*_eta);
+}
+double Toy::Get_V0_global()
+{
+    return Vtot(_eta);
 }
