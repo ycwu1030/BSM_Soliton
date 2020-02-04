@@ -3,7 +3,7 @@
  * @Author       : Yongcheng Wu
  * @Date         : 2020-01-27 17:56:36
  * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-01-30 21:19:02
+ * @LastEditTime : 2020-02-03 22:28:54
  */
 #include "SM_cxSM.h"
 #include "SolitonSolver.h"
@@ -31,14 +31,14 @@ VD dV(VD Fields, void *param)
 int main(int argc, char const *argv[])
 {
     CXSM model;
-    model.SetInput(10,50,0,0.1);
+    model.SetInput(157.633,42.647,0.0,0.335465);
     model.PrintPotentialParameter();
     model.PrintLocalMinima();
     cout<<"Stability: "<<model.CheckStability()<<endl;
     cout<<"Unitarity: "<<model.CheckUnitarity()<<endl;
     cout<<"Global Min: "<<model.CheckGlobalMinimum()<<endl;
 
-    SolitonSolver SS(2,100);
+    SolitonSolver SS(2,500);
     SS.SetPotentials(V,dV);
     SS.SetParam(&model);
     VD LEFT = {model.vev, -model.VS};

@@ -3,7 +3,7 @@
  * @Author       : Yongcheng Wu
  * @Date         : 2020-01-28 12:46:03
  * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-01-30 22:05:22
+ * @LastEditTime : 2020-02-04 12:09:14
  */
 #include <iostream>
 #include <fstream>
@@ -179,6 +179,7 @@ void SolitonSolver::PrintSolitonSolution()
         
     }
     cout<<"Total Energy is: "<<_TotalEnergy_Current<<endl;
+    cout<<"The Tension is: "<<GetTension()<<endl;
 }
 void SolitonSolver::DumpSolitonSolution(string filename)
 {
@@ -207,6 +208,7 @@ void SolitonSolver::DumpSolitonSolution(string filename)
         }
     }
     output<<"Total Energy is: "<<_TotalEnergy_Current<<endl;
+    output<<"The Tension is: "<<GetTension()<<endl;
     output.close();
 }
 double SolitonSolver::GetTension()
