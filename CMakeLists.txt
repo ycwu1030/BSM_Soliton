@@ -5,7 +5,7 @@ endif ()
 PROJECT(cxSMSoliton CXX)
 
 
-SET(cxSMSoliton_VERSION "0.1")
+SET(cxSMSoliton_VERSION "0.1.2")
 
 FIND_PACKAGE(Eigen3 REQUIRED)
 INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIR} include)
