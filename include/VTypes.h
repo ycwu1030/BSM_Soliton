@@ -3,12 +3,13 @@
  * @Author       : Yongcheng Wu
  * @Date         : 2019-12-22 13:50:35
  * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-02-05 14:12:42
+ * @LastEditTime : 2020-02-06 14:24:38
  */
 #ifndef VTypes_H
 #define VTypes_H
 #include <vector>
 
+typedef std::vector<bool> VB;
 typedef std::vector<double> VD;
 typedef std::vector<std::vector<double> > VVD;
 typedef std::vector<std::vector<std::vector<double> > > VVVD;
