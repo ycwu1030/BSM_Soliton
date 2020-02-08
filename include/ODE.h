@@ -3,7 +3,7 @@
  * @Author       : Yongcheng Wu
  * @Date         : 2020-02-06 14:04:26
  * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-02-06 14:42:52
+ * @LastEditTime : 2020-02-06 15:09:34
  */
 #ifndef ODE_H
 #define ODE_H
@@ -40,7 +40,6 @@ public:
     void SetYBoundary(VD BOUND_BEGIN, VD BOUND_END, VB BOUND_BEGIN_Q, VB BOUND_END_Q);
     void SetYBoundaryGuess(VD BOUND_GUESS);
 
-    
 };
 
 
