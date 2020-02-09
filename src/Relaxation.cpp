@@ -3,10 +3,11 @@
  * @Author       : Yongcheng Wu
  * @Date         : 2020-02-04 13:29:13
  * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-02-08 00:05:39
+ * @LastEditTime : 2020-02-09 15:39:44
  */
 #include "Relaxation.h"
 #include <iostream>
+#include <fstream>
 #include <cmath>
 using namespace std;
 Relaxation::Relaxation()
@@ -29,6 +30,7 @@ void Relaxation::SetDOF(int DOF, int NB_Left, int MeshPoints)
 {
     _DOF = DOF;
     _N_BOUND_LEFT = NB_Left;
+    _N_BOUND_RIGHT = _DOF - _N_BOUND_LEFT;
     _N_MeshPoints = MeshPoints;
 }
 void Relaxation::SetConvergeCriterion(double slowc, double conv)
@@ -43,17 +45,30 @@ void Relaxation::SetBoundary(double x_begin, double x_end, VD y_begin, VD y_end)
     _Y_BEGIN = y_begin;
     _Y_END = y_end;
 }
+void Relaxation::SetODESystem(DIFEQ difeq, void *param)
+{
+    _difeq = difeq;
+    _param = param;
+}
 void Relaxation::_INIT()
 {
     // ! Initiative the vectors
     _X.clear();
     _Y.clear();
-    double x_stepsize = (_X_END - _X_BEGIN)/(_N_MeshPoints-1);
-    VD y_stepsize = (_Y_END - _Y_BEGIN)/(_N_MeshPoints-1);
-    for (size_t i = 0; i < _N_MeshPoints; i++)
+    if (_X_Guess.size()!=0 && _Y_Guess.size() == _X_Guess.size())
     {
-        _X.push_back(_X_BEGIN+i*x_stepsize);
-        _Y.push_back(_Y_BEGIN+i*y_stepsize);
+        _X = _X_Guess;
+        _Y = _Y_Guess;
+    }
+    else
+    {
+        double x_stepsize = (_X_END - _X_BEGIN)/(_N_MeshPoints-1);
+        VD y_stepsize = (_Y_END - _Y_BEGIN)/(_N_MeshPoints-1);
+        for (size_t i = 0; i < _N_MeshPoints; i++)
+        {
+            _X.push_back(_X_BEGIN+i*x_stepsize);
+            _Y.push_back(_Y_BEGIN+i*y_stepsize);
+        }   
     }
     _S.clear();
     _C.clear();
@@ -67,16 +82,25 @@ void Relaxation::_SOLVDE()
     _relax_param.k_final = _N_MeshPoints-1;
 
     int nvars = _DOF*_N_MeshPoints;
+    vector<int> kmax(_DOF,0);
+    VD ermax(_DOF,0);
 
     for (size_t iter = 0; iter < _ITE_MAX; iter++)
     {
         // The first boundary at k=k_init;
         _relax_param.k = _relax_param.k_init;
+
+        _relax_param.x1 = _X[_relax_param.k];
+        _relax_param.x2 = _X[_relax_param.k];
+        _relax_param.y1 = _Y[_relax_param.k];
+        _relax_param.y2 = _Y[_relax_param.k];
+
         _relax_param.k_coeff = 2*_DOF;
         _relax_param.index_row_begin = _DOF - _N_BOUND_LEFT;
         _relax_param.index_row_end = _DOF-1;
         _relax_param.index_mod_begin = _DOF;
         _relax_param.index_column_off = 0;
+
         _difeq(_relax_param,_param,_S);
         _pinvs();
         
@@ -84,6 +108,12 @@ void Relaxation::_SOLVDE()
         for (size_t k = _relax_param.k_init + 1; k <= _relax_param.k_final; k++)
         {
             _relax_param.k = k;
+
+            _relax_param.x1 = _X[_relax_param.k-1];
+            _relax_param.x2 = _X[_relax_param.k];
+            _relax_param.y1 = _Y[_relax_param.k-1];
+            _relax_param.y2 = _Y[_relax_param.k];
+
             _relax_param.index_row_begin = 0;
             _relax_param.index_row_end = _DOF - 1;
             _relax_param.index_zero_begin = 0;
@@ -93,6 +123,7 @@ void Relaxation::_SOLVDE()
             _relax_param.k_coeff = 2*_DOF;
 
             _relax_param.index_column_off = 0;
+            
             _difeq(_relax_param,_param,_S);
             _reduce();
             _pinvs();
@@ -100,6 +131,12 @@ void Relaxation::_SOLVDE()
 
         // The final boundary condition
         _relax_param.k = _relax_param.k_final + 1;
+
+        _relax_param.x1 = _X[_relax_param.k-1];
+        _relax_param.x2 = _X[_relax_param.k-1];
+        _relax_param.y1 = _Y[_relax_param.k-1];
+        _relax_param.y2 = _Y[_relax_param.k-1];
+
         _relax_param.index_row_begin = 0;
         _relax_param.index_row_end = _DOF - _N_BOUND_LEFT - 1;
         _relax_param.index_zero_begin = 0 + _DOF;
@@ -113,11 +150,46 @@ void Relaxation::_SOLVDE()
         _difeq(_relax_param,_param,_S);
         _reduce();
         _pinvs();
-        
-        _bksub();
-
-    }
     
+        // Back substitution
+        _bksub();
+        
+        double err = 0.0;
+        for (size_t j = 0; j < _DOF; j++)
+        {
+            double errj=0,vmax=0;
+            double vz;
+            int km=0;
+            for (size_t k = _relax_param.k_init; k <= _relax_param.k_final; k++)
+            {
+                vz = abs(_C[k][j][0]);
+                if (vz > vmax)
+                {
+                    vmax = vz;
+                    km = k;
+                }
+                errj += vz;
+            }
+            err += errj/_scales[j];
+            ermax[j] = _C[km][j][0]/_scales[j];
+            kmax[j]=km;
+        }
+        err /= nvars;
+        double fac = (err > _slowc? _slowc/err: 1.0);
+
+        for (size_t j = 0; j < _DOF; j++)
+        {
+            for (size_t k = _relax_param.k_init; k <= _relax_param.k_final; k++)
+            {
+                _Y[k][j] -= fac*_C[k][j][0];
+            }
+        }
+        if (err < _conv)
+        {
+            return;
+        }
+    }
+    cout<<"TOO MANY"<<endl;
 }
 
 void Relaxation::_reduce()
@@ -140,7 +212,7 @@ void Relaxation::_reduce()
     int index_C_column_final = _DOF - _N_BOUND_LEFT; // jcf
 
     int loff = index_C_column_beg - index_mod_beg; // The align the _C and the _S
-    int ic = index_C_column_beg;
+    int ic = index_C_row_beg;
     double vx;
 
     for (size_t j = index_zero_beg; j <= index_zero_end; j++)
@@ -165,7 +237,7 @@ void Relaxation::_reduce()
 void Relaxation::_pinvs()
 {
     int k = _relax_param.k;
-    
+ 
     int index_row_beg = _relax_param.index_row_begin; // ie1
     int index_row_end = _relax_param.index_row_end; // ie2
 
@@ -175,9 +247,8 @@ void Relaxation::_pinvs()
 
     int index_coeff = _relax_param.k_coeff; // jsf
 
-    int dim_square = index_row_end - index_row_beg + 1; // The dimension of the square sub-matrix that need to be diagonalized
-    vector<int> indxr(dim_square,0);
-    VD pscl(dim_square,0);
+    vector<int> indxr(index_row_end+1,0);
+    VD pscl(index_row_end+1,0);
 
 
     // Record the biggest element in each row;
@@ -185,7 +256,7 @@ void Relaxation::_pinvs()
     for (size_t i = index_row_beg; i <= index_row_end; i++)
     {
         big = 0;
-        for (size_t j = index_column_beg; j < index_column_end; j++)
+        for (size_t j = index_column_beg; j <= index_column_end; j++)
         {
             if (abs(_S[i][j])>big)
             {
@@ -200,7 +271,8 @@ void Relaxation::_pinvs()
         pscl[i]=1.0/big;
         indxr[i]=0;
     }
-
+    
+    
     double piv;
     double pivinv;
     double dum;
@@ -271,4 +343,128 @@ void Relaxation::_pinvs()
             _C[k][irow][j+jcoff] = _S[i][j];
         }
     }
+}
+
+void Relaxation::_bksub()
+{
+
+    double xx;
+    int im = 0;
+    int k_pre;
+    int index_column_coeff = _DOF - _N_BOUND_LEFT;
+    for (int k = _relax_param.k_final; k >= _relax_param.k_init; k--)
+    {
+        if (k == _relax_param.k_init)
+        {
+            im = _N_BOUND_RIGHT;
+        }
+        k_pre = k+1;
+        for (int j = 0; j < _N_BOUND_RIGHT; j++)
+        {
+            xx = _C[k_pre][j][index_column_coeff];
+            for (int i = im; i < _DOF; i++)
+            {
+                _C[k][i][index_column_coeff] -= _C[k][i][j]*xx;
+            }
+        }
+    }
+
+    for (int k = _relax_param.k_init; k <= _relax_param.k_final; k++)
+    {
+        k_pre = k+1;
+        for (int i = 0; i < _N_BOUND_LEFT; i++)
+        {
+            _C[k][i][0] = _C[k][i+_N_BOUND_RIGHT][index_column_coeff];
+        }
+        for (int i = 0; i < _N_BOUND_RIGHT; i++)
+        {
+            _C[k][i+_N_BOUND_LEFT][0] = _C[k_pre][i][index_column_coeff];
+        }
+    }
+}
+
+void Relaxation::PrintSolution()
+{
+    cout<<"The Solution is:"<<endl;
+    cout<<"x\t";
+    for (size_t i = 0; i < _DOF; i++)
+    {
+        cout<<"y_"<<i<<"\t";
+    }
+    cout<<endl;
+    for (size_t i = 0; i < _X.size(); i++)
+    {
+        cout<<_X[i]<<"\t";
+        for (size_t j = 0; j < _DOF; j++)
+        {
+            cout<<_Y[i][j]<<"\t";
+        }
+        cout<<endl;
+    }
+}
+void Relaxation::DumpSolution(string filename)
+{
+    ofstream output(filename.c_str());
+    output<<"The Solution is:"<<endl;
+    output<<"x\t";
+    for (size_t i = 0; i < _DOF; i++)
+    {
+        output<<"y_"<<i<<"\t";
+    }
+    output<<endl;
+    for (size_t i = 0; i < _X.size(); i++)
+    {
+        output<<_X[i]<<"\t";
+        for (size_t j = 0; j < _DOF; j++)
+        {
+            output<<_Y[i][j]<<"\t";
+        }
+        output<<endl;
+    }
+}
+
+void Relaxation::PrintS()
+{
+    cout<<"S: "<<endl;
+    for (int i = 0; i < _DOF; ++i)
+    {
+        for (int j = 0; j < 2*_DOF+1; ++j)
+        {
+            cout<<_S[i][j]<<"  ";
+        }
+        cout<<endl;
+    }
+    cout<<endl;
+}
+void Relaxation::PrintC()
+{
+    cout<<"C: "<<endl;
+    for (size_t k = 0; k < _N_MeshPoints + 1; k++)
+    {
+        cout<<"At "<<k<<endl;
+        for (size_t i = 0; i < _DOF; i++)
+        {
+            for (size_t j = 0; j < _DOF-_N_BOUND_LEFT+1; j++)
+            {
+                cout<<_C[k][i][j]<<"\t";
+            }
+            cout<<endl;
+        }
+        cout<<endl;
+    }
+    cout<<endl;
+}
+
+void Relaxation::PrintC(int k)
+{
+    cout<<"C at k="<<k<<": "<<endl;
+    for (size_t i = 0; i < _DOF; i++)
+    {
+        for (size_t j = 0; j < _DOF-_N_BOUND_LEFT+1; j++)
+        {
+            cout<<_C[k][i][j]<<"\t";
+        }
+        cout<<endl;
+    }
+    cout<<endl;
 }

@@ -3,12 +3,13 @@
  * @Author       : Yongcheng Wu
  * @Date         : 2020-02-03 17:23:33
  * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-02-07 19:14:36
+ * @LastEditTime : 2020-02-09 10:48:42
  */
 #ifndef Relaxation_H
 #define Relaxation_H
 
 #include "VTypes.h"
+#include <string>
 
 /*
  * About the Relaxation method:
@@ -174,6 +175,7 @@ private:
     int _N_MeshPoints;// Number of mesh points
     int _DOF; // Number of equations, please reduce the ODEs into the standard form with only first directives.
     int _N_BOUND_LEFT; // The number of boundary condition at the left hand side
+    int _N_BOUND_RIGHT; // = _DOF - _N_BOUND_LEFT
     int _ITE_MAX; // Maximum number of iterations
     double _conv; // Convergence criterion
     double _slowc;
@@ -186,6 +188,9 @@ private:
     VD _scales; // Scales for each variables.
     VD _X;
     VVD _Y;
+
+    VD _X_Guess;
+    VVD _Y_Guess;
 
     VVD _S; // _DOF * (2*_DOF+1)
     VVVD _C; // (_N_MeshPoints+1) * _DOF * (_DOF-_N_BOUND_LEFT+1);
@@ -200,8 +205,8 @@ private:
     void _pinvs();
     void _bksub();
     
-    void _INIT();
-    void _SOLVDE();
+    
+    
 
 public:
     Relaxation();
@@ -210,10 +215,19 @@ public:
 
     void SetDOF(int DOF, int NB_Left, int MeshPoints=100);
     void SetBoundary(double x_begin, double x_end, VD y_begin, VD y_end);// The inputs help setting the inital value for relaxation
+    void SetBoundary(VD X_Guess, VVD Y_Guess){_X_Guess = X_Guess; _Y_Guess=Y_Guess;} // Directly set the guess solution
     void SetMaxIteration(int itemax=100);
+    void SetScales(VD scales){_scales = scales;}
     void SetConvergeCriterion(double slowc=1.0, double conv=1e-6);
     void SetODESystem(DIFEQ difeq, void *param);
-    
+    void _INIT();
+    void _SOLVDE();
+
+    void PrintS();
+    void PrintC();
+    void PrintC(int k);
+    void PrintSolution();
+    void DumpSolution(std::string filename);
 };
 
 #endif
