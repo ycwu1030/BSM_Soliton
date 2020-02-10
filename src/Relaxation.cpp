@@ -3,7 +3,7 @@
  * @Author       : Yongcheng Wu
  * @Date         : 2020-02-04 13:29:13
  * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-02-09 15:39:44
+ * @LastEditTime : 2020-02-09 21:25:15
  */
 #include "Relaxation.h"
 #include <iostream>
@@ -87,6 +87,10 @@ void Relaxation::_SOLVDE()
 
     for (size_t iter = 0; iter < _ITE_MAX; iter++)
     {
+        if ((iter+1)%1000==0)
+        {
+            cout<<"ITER: "<<iter+1<<endl;
+        }
         // The first boundary at k=k_init;
         _relax_param.k = _relax_param.k_init;
 
@@ -184,6 +188,13 @@ void Relaxation::_SOLVDE()
                 _Y[k][j] -= fac*_C[k][j][0];
             }
         }
+        // cout<<"Iter.\tError\tFAC"<<endl;
+        // cout<<iter<<"\t"<<err<<"\t"<<fac<<endl;
+        // cout<<"Var\tKmax\tMax.Error"<<endl;
+        // for (size_t id = 0; id < _DOF; id++)
+        // {
+        //     cout<<id<<"\t"<<kmax[id]<<"\t"<<ermax[id]<<endl;
+        // }
         if (err < _conv)
         {
             return;
