@@ -3,11 +3,12 @@
  * @Author       : Yongcheng Wu
  * @Date         : 2020-01-27 14:19:33
  * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-01-30 14:00:17
+ * @LastEditTime : 2020-02-09 23:15:47
  */
 #ifndef CXSM_H
 #define CXSM_H
 
+#include "VTypes.h"
 #include "CubicSolver.h"
 #include <Eigen/Dense>
 #include <stdio.h>
@@ -112,6 +113,10 @@ public:
     void FindLocalMinima();
     void PrintLocalMinima();
     void PrintPotentialParameter();
+
+// 
+    double GetTotalEnergy(VD x, VVD y);
+    double GetTension(VD x, VVD y);
 
 // Potential Parameters:
     double mu2;

@@ -3,7 +3,7 @@
  * @Author       : Yongcheng Wu
  * @Date         : 2020-02-04 13:29:13
  * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-02-09 21:25:15
+ * @LastEditTime : 2020-02-09 23:44:14
  */
 #include "Relaxation.h"
 #include <iostream>
@@ -75,7 +75,7 @@ void Relaxation::_INIT()
     _S = VVD(_DOF,VD(2*_DOF+1,0));
     _C = VVVD(_N_MeshPoints+1,VVD(_DOF,VD(_DOF-_N_BOUND_LEFT+1,0)));
 }
-void Relaxation::_SOLVDE()
+bool Relaxation::SOLVDE()
 {
     _INIT();
     _relax_param.k_init = 0;
@@ -87,10 +87,10 @@ void Relaxation::_SOLVDE()
 
     for (size_t iter = 0; iter < _ITE_MAX; iter++)
     {
-        if ((iter+1)%1000==0)
-        {
-            cout<<"ITER: "<<iter+1<<endl;
-        }
+        // if ((iter+1)%1000==0)
+        // {
+        //     cout<<"ITER: "<<iter+1<<endl;
+        // }
         // The first boundary at k=k_init;
         _relax_param.k = _relax_param.k_init;
 
@@ -197,10 +197,11 @@ void Relaxation::_SOLVDE()
         // }
         if (err < _conv)
         {
-            return;
+            return true;
         }
     }
-    cout<<"TOO MANY"<<endl;
+    cout<<"TOO MANY TRIES"<<endl;
+    return false;
 }
 
 void Relaxation::_reduce()

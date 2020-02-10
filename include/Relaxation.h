@@ -3,7 +3,7 @@
  * @Author       : Yongcheng Wu
  * @Date         : 2020-02-03 17:23:33
  * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-02-09 10:48:42
+ * @LastEditTime : 2020-02-09 23:44:31
  */
 #ifndef Relaxation_H
 #define Relaxation_H
@@ -205,7 +205,7 @@ private:
     void _pinvs();
     void _bksub();
     
-    
+    void _INIT();
     
 
 public:
@@ -220,14 +220,17 @@ public:
     void SetScales(VD scales){_scales = scales;}
     void SetConvergeCriterion(double slowc=1.0, double conv=1e-6);
     void SetODESystem(DIFEQ difeq, void *param);
-    void _INIT();
-    void _SOLVDE();
+    
+    bool SOLVDE();
 
     void PrintS();
     void PrintC();
     void PrintC(int k);
     void PrintSolution();
     void DumpSolution(std::string filename);
+
+    VVD GetY(){return _Y;}
+    VD GetX(){return _X;}
 };
 
 #endif

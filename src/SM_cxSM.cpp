@@ -3,7 +3,7 @@
  * @Author       : Yongcheng Wu
  * @Date         : 2020-01-27 14:19:34
  * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-01-30 14:02:47
+ * @LastEditTime : 2020-02-09 23:37:02
  */
 #include <iostream>
 #include <cmath>
@@ -370,4 +370,31 @@ double Toy::dVdphi(double phi)
 double Toy::Get_V0_global()
 {
     return Vtot(_eta);
+}
+
+double CXSM::GetTotalEnergy(VD x, VVD y)
+{
+    double energy = 0;
+    double V0 = Vtot(vev,VS,0);
+    for (size_t i = 0; i < x.size()-1; i++)
+    {
+        double density = 0;
+        double DeltaZ = x[i+1]-x[i];
+        VD yaver = (y[i]+y[i+1])/2;
+        density += pow(vev,4)*(y[i+1]-y[i])*(y[i+1]-y[i])/pow(DeltaZ,2)/2;
+        density += Vtot(yaver[0]*vev,yaver[1]*vev,0) - V0;
+        energy += density*DeltaZ/vev;
+    }
+    return energy;
+}
+double CXSM::GetTension(VD x, VVD y)
+{
+    double tension = 0;
+    for (size_t i = 0; i < x.size()-1; i++)
+    {
+        double _DeltaZ = x[i+1]-x[i];
+        VD dfield_dZ = (y[i+1]-y[i])/_DeltaZ;
+        tension += dfield_dZ*dfield_dZ * _DeltaZ;
+    }
+    return tension*pow(vev,3);
 }

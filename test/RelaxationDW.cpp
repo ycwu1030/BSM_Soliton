@@ -3,7 +3,7 @@
  * @Author       : Yongcheng Wu
  * @Date         : 2020-02-08 15:48:52
  * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-02-09 21:25:33
+ * @LastEditTime : 2020-02-09 23:44:59
  */
 #include "SM_cxSM.h"
 #include "Relaxation.h"
@@ -144,8 +144,12 @@ int main(int argc, char const *argv[])
     RX.SetScales(scales);
     // RX._INIT();
     // RX.PrintSolution();
-    RX._SOLVDE();
+    RX.SOLVDE();
+    VD X = RX.GetX();
+    VVD Y = RX.GetY();
     RX.PrintSolution();
+    cout<<"Energy: "<<model.GetTotalEnergy(X,Y)<<endl;
+    cout<<"Tension: "<<model.GetTension(X,Y)<<endl;
     RX.DumpSolution("Relaxation_DW_test.dat");
     return 0;
 }

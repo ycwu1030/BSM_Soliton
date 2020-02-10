@@ -3,7 +3,7 @@
  * @Author       : Yongcheng Wu
  * @Date         : 2020-02-08 15:48:52
  * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-02-09 18:21:40
+ * @LastEditTime : 2020-02-09 23:46:22
  */
 #include "Relaxation.h"
 #include <iostream>
@@ -136,7 +136,7 @@ int main(int argc, char const *argv[])
     RX.SetScales(scales);
     // RX._INIT();
     // RX.PrintSolution();
-    RX._SOLVDE();
+    RX.SOLVDE();
     RX.PrintSolution();
     RX.DumpSolution("Relaxation_vortex_test.dat");
     return 0;

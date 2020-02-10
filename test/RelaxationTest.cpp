@@ -3,7 +3,7 @@
  * @Author       : Yongcheng Wu
  * @Date         : 2020-02-08 15:48:52
  * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-02-09 15:37:02
+ * @LastEditTime : 2020-02-09 23:46:05
  */
 #include "Relaxation.h"
 #include <iostream>
@@ -195,9 +195,9 @@ int main(int argc, char const *argv[])
     RX.SetMaxIteration(100);
     RX.SetODESystem(DIFEQ_ODD,&spa);
     RX.SetScales(scales);
-    RX._INIT();
-    RX.PrintSolution();
-    RX._SOLVDE();
+    // RX._INIT();
+    // RX.PrintSolution();
+    RX.SOLVDE();
     RX.PrintSolution();
     RX.DumpSolution("Relaxation_test.dat");
     return 0;
