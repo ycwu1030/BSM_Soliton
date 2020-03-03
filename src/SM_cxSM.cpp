@@ -398,3 +398,46 @@ double CXSM::GetTension(VD x, VVD y)
     }
     return tension*pow(vev,3);
 }
+
+bool CXSM_CP::SetInput(double VSin, double MHHin, double MHAin, double alphain, double alpha1in, double alpha3in)
+{
+    VS = VSin;
+    MHH = MHHin;
+    MHH2 = MHH*MHH;
+    MHA = MHAin;
+    MHA2 = MHA*MHA;
+
+    alp = alphain;
+    alp1 = alpha1in;
+    alp3 = alpha3in;
+
+    sa1 = sin(alp1);
+    ca1 = cos(alp1);
+    sa3 = sin(alp3);
+    ca3 = cos(alp3);
+
+    sa2 = (MHH2 - MHL2)*sa1*ca1*sa3/((MHA2-MHL2*ca1*ca1-MHH2*sa1*sa1)*ca3);
+    if (abs(sa2)>1)
+    {
+        return false;
+    }
+    alp2 = asin(sa2);
+    ca2 = cos(alp2);
+    
+    R[0][0] = ca1*ca2;
+    R[0][1] = sa1*ca2;
+    R[0][2] = sa2;
+    
+    R[1][0] = -(ca1*sa2*sa3+sa1*ca3);
+    R[1][1] = ca1*ca3 - sa1*sa2*sa3;
+    R[1][2] = ca2*sa3;
+
+    R[2][0] = -ca1*sa2*ca3 + sa1*sa3;
+    R[2][1] = -(ca1*sa3+sa1*sa2*ca3);
+    R[2][2] = ca2*ca3;
+
+    lam = (MHL2*R[0][0]*R[0][0]+MHH2*R[0][1]*R[0][1]+MHA2*R[0][2]*R[0][2])/2/vev/vev;
+    del2 = 2*(MHL2*R[0][0]*R[1][0]+MHH2*R[0][1]*R[1][1]+MHA2*R[0][2]*R[1][2])/vev/VS;
+    
+    mu2 = 0;
+}
