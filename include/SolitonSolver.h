@@ -1,10 +1,3 @@
-/*
- * @Description  : 
- * @Author       : Yongcheng Wu
- * @Date         : 2020-01-28 12:19:40
- * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-01-30 22:01:51
- */
 #ifndef SolitonSolver_H
 #define SolitonSolver_H
 

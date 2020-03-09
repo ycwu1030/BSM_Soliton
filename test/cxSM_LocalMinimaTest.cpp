@@ -1,10 +1,3 @@
-/*
- * @Description  : 
- * @Author       : Yongcheng Wu
- * @Date         : 2020-01-27 17:56:36
- * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-01-27 18:24:29
- */
 #include "SM_cxSM.h"
 #include <iostream>
 using namespace std;

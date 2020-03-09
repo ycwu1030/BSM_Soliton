@@ -1,11 +1,3 @@
-/*
- * @Description  : 
- * @Author       : Yongcheng Wu
- * @Date         : 2020-01-27 17:56:36
- * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-02-06 00:27:17
- */
-
 #include "RungeKutta.h"
 #include <iostream>
 #include <cmath>

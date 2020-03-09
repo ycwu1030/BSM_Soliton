@@ -1,10 +1,3 @@
-/*
- * @Description  : 
- * @Author       : Yongcheng Wu
- * @Date         : 2020-01-27 14:19:33
- * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-02-09 23:15:47
- */
 #ifndef CXSM_H
 #define CXSM_H
 

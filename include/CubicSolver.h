@@ -1,10 +1,3 @@
-/*
- * @Description  : 
- * @Author       : Yongcheng Wu
- * @Date         : 2020-01-27 14:19:33
- * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-01-27 17:00:01
- */
 #ifndef CUBICSOLVER_H
 #define CUBICSOLVER_H
 

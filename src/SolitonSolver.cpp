@@ -1,10 +1,3 @@
-/*
- * @Description  : 
- * @Author       : Yongcheng Wu
- * @Date         : 2020-01-28 12:46:03
- * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-02-04 12:09:14
- */
 #include <iostream>
 #include <fstream>
 #include <cmath>

@@ -1,10 +1,3 @@
-/*
- * @Description  : 
- * @Author       : Yongcheng Wu
- * @Date         : 2020-02-04 13:29:13
- * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-02-09 23:44:14
- */
 #include "Relaxation.h"
 #include <iostream>
 #include <fstream>

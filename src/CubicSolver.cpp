@@ -1,10 +1,3 @@
-/*
- * @Description  : 
- * @Author       : Yongcheng Wu
- * @Date         : 2020-01-27 14:19:34
- * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-01-27 17:00:42
- */
 #include "CubicSolver.h"
 #include <cmath>
 // #include <bits/stdc++.h>

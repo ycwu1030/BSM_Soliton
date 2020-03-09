@@ -1,10 +1,3 @@
-/*
- * @Description  : 
- * @Author       : Yongcheng Wu
- * @Date         : 2020-01-27 14:19:34
- * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-02-09 23:37:02
- */
 #include <iostream>
 #include <cmath>
 #include "SM_cxSM.h"

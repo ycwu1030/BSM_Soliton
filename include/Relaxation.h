@@ -1,10 +1,3 @@
-/*
- * @Description  : This class provides the APIs for Relaxation method in solving two-point boundary ODE
- * @Author       : Yongcheng Wu
- * @Date         : 2020-02-03 17:23:33
- * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-02-09 23:44:31
- */
 #ifndef Relaxation_H
 #define Relaxation_H
 

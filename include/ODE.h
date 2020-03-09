@@ -1,10 +1,3 @@
-/*
- * @Description  : 
- * @Author       : Yongcheng Wu
- * @Date         : 2020-02-06 14:04:26
- * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-02-06 15:09:34
- */
 #ifndef ODE_H
 #define ODE_H
 

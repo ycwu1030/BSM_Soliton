@@ -1,10 +1,3 @@
-/*
- * @Description  : overload operators
- * @Author       : Yongcheng Wu
- * @Date         : 2019-12-30 18:55:43
- * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-02-05 12:32:50
- */
 #include "VTypes.h"
 #include <cmath>
 using namespace std;

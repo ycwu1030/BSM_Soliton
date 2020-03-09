@@ -1,10 +1,3 @@
-/*
- * @Description  : 
- * @Author       : Yongcheng Wu
- * @Date         : 2020-02-08 15:48:52
- * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-02-09 23:44:59
- */
 #include "SM_cxSM.h"
 #include "Relaxation.h"
 #include <iostream>

@@ -1,10 +1,3 @@
-/*
- * @Description  : 
- * @Author       : Yongcheng Wu
- * @Date         : 2020-01-27 17:56:36
- * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-02-04 12:15:44
- */
 #include "SM_cxSM.h"
 #include "SolitonSolver.h"
 #include <iostream>

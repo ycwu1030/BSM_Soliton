@@ -1,11 +1,3 @@
-/*
- * @Description  : 
- * @Author       : Yongcheng Wu
- * @Date         : 2020-01-27 17:56:36
- * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-02-05 18:59:24
- */
-
 #include "RungeKutta.h"
 #include <iostream>
 using namespace std;

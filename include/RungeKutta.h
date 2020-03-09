@@ -1,10 +1,6 @@
 /*
  * @Description  : Following Numerical Recipes in C (1988 version), Section 15.1 and 15.2
- * @Author       : Yongcheng Wu
- * @Date         : 2020-02-04 14:23:09
- * @LastEditors  : Yongcheng Wu
- * @LastEditTime : 2020-02-06 14:37:03
- */
+*/
 #ifndef RungeKutta_H
 #define RungeKutta_H
 
