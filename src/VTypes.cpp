@@ -2,7 +2,10 @@
 #include <cmath>
 using namespace std;
 
-
+bool CloseQ(double x1, double x2)
+{
+    return abs(x1-x2)<1e-2;
+}
 vector<double> operator+(const vector<double> &lhs, const vector<double> &rhs){
     vector<double> res;
     for (int i = 0; i < lhs.size(); ++i)
@@ -99,6 +102,34 @@ vector<double> abs(const vector<double> &input)
     for (int i = 0; i < input.size(); ++i)
     {
         res.push_back(abs(input[i]));
+    }
+    return res;
+}
+
+VVD operator*(const VVD &lhs, const double &s)
+{
+    VVD res;
+    for (int i = 0; i < lhs.size(); ++i)
+    {
+        res.push_back(lhs[i]*s);
+    }
+    return res;
+}
+VVD operator*(const double &s, const VVD &rhs)
+{
+    VVD res;
+    for (int i = 0; i < rhs.size(); ++i)
+    {
+        res.push_back(rhs[i]*s);
+    }
+    return res;
+}
+VVD operator/(const VVD &lhs, const double &s)
+{
+    VVD res;
+    for (int i = 0; i < lhs.size(); ++i)
+    {
+        res.push_back(lhs[i]/s);
     }
     return res;
 }

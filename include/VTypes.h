@@ -1,5 +1,6 @@
 #ifndef VTypes_H
 #define VTypes_H
+#include <cmath>
 #include <vector>
 
 typedef std::vector<bool> VB;
@@ -7,20 +8,27 @@ typedef std::vector<double> VD;
 typedef std::vector<std::vector<double> > VVD;
 typedef std::vector<std::vector<std::vector<double> > > VVVD;
 
-std::vector<double> abs(const std::vector<double> &input);
+VD abs(const VD &input);
 
-std::vector<double> operator+(const std::vector<double> &lhs, const std::vector<double> &rhs);
-std::vector<double> operator+(const std::vector<double> &lhs, const double &cons);
-std::vector<double> operator+(const double &cons, const std::vector<double> &rhs);
-std::vector<double> operator+(const std::vector<double> &lhs, const std::vector<double> &rhs);
+VD operator+(const VD &lhs, const VD &rhs);
+VD operator+(const VD &lhs, const double &cons);
+VD operator+(const double &cons, const VD &rhs);
+VD operator+(const VD &lhs, const VD &rhs);
 
-std::vector<double> operator-(const std::vector<double> &lhs, const std::vector<double> &rhs);
+VD operator-(const VD &lhs, const VD &rhs);
 
-std::vector<double> operator*(const std::vector<double> &lhs, const double &s);
-std::vector<double> operator*(const double &s, const std::vector<double> &rhs);
-double operator*(const std::vector<double> &lhs, const std::vector<double> &rhs); // Scalar Product
+VD operator*(const VD &lhs, const double &s);
+VD operator*(const double &s, const VD &rhs);
+double operator*(const VD &lhs, const VD &rhs); // Scalar Product
 
-std::vector<double> operator/(const std::vector<double> &lhs, const std::vector<double> &rhs); // elementary-wise divide
-std::vector<double> operator/(const std::vector<double> &lhs, const double &s);
+VD operator/(const VD &lhs, const VD &rhs); // elementary-wise divide
+VD operator/(const VD &lhs, const double &s);
+
+VVD operator*(const VVD &lhs, const double &s);
+VVD operator*(const double &s, const VVD &rhs);
+
+VVD operator/(const VVD &lhs, const double &s);
+
+bool CloseQ(double x1, double x2);
 
 #endif

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include "SM_cxSM.h"
+#include "Constants.h"
 
 using namespace std;
 using namespace Eigen;

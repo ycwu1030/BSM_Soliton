@@ -1,9 +1,6 @@
 #ifndef CUBICSOLVER_H
 #define CUBICSOLVER_H
 
-#ifndef Pi
-#define Pi 3.14159265358979312
-#endif
 
 // Here I only list the situation for real solution, I don't care the complex solution
 enum CUBICSTATES
