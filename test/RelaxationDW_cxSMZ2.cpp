@@ -11,24 +11,18 @@ int main(int argc, char const *argv[])
 {
     cxSM_Z2 model;
     // model.SetInput(157.633,42.647,0.335465);
-    model.Set_Physical_Parameters(157.633,0.335465,42.647);
-    VD left = {model.GetVEV(),-157.633};
-    VD right = {model.GetVEV(),157.633};
+    // model.Set_Physical_Parameters(157.633,0.335465,42.647);
+    model.Set_Physical_Parameters(15.0,0.1,66.0);
+    VD left = {model.GetVEV(),-15.};
+    VD right = {model.GetVEV(),15.};
     DWSolver solver(&model,left,right);
     solver.SetOverallScale(model.GetVEV());
     solver.SetXRange();
     VD X;
     VVD Y;
     bool good = solver.Solve(X,Y);
-    for (size_t i = 0; i < X.size(); i++)
-    {
-        cout<<X[i]<<"\t";
-        for (size_t j = 0; j < Y[i].size(); j++)
-        {
-            cout<<Y[i][j]<<"\t";
-        }
-        cout<<endl;
-    }
+    solver.PrintSolution();
+    solver.DumpSolution("cxSMZ2_DW_sol.dat");
     cout<<"Energy: "<<model.GetTotalEnergy(X,Y)<<endl;
     cout<<"Tension: "<<model.GetTension(X,Y)<<endl;
     // RX.DumpSolution("Relaxation_DW_test.dat");

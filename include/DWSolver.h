@@ -3,6 +3,7 @@
 
 #include "Relaxation.h"
 #include "Potential.h"
+#include <string>
 
 class DWSolver
 {
@@ -11,6 +12,8 @@ private:
     int _ODE_DOF;
     int _N_Left_Bound;
     int _N_Right_Bound;
+    VD _X;
+    VVD _Y;
 
     Relaxation _ODESolver;
     Potential *_mod;
@@ -34,6 +37,9 @@ public:
     void SetDWODE(const Relaxation_Param relax_param, VVD &S);
 
     bool Solve(VD &X, VVD &Y);
+
+    void PrintSolution();
+    void DumpSolution(std::string filename);
 };
 
 

@@ -1,5 +1,6 @@
 #include "DWSolver.h"
 #include <iostream>
+#include <fstream>
 using namespace std;
 
 void DIFEQ_DW(const Relaxation_Param relax_param, void *param, VVD &S)
@@ -43,7 +44,7 @@ bool DWSolver::Solve(VD &X, VVD &Y)
     _ODE_DOF = 2*_N_Fields;
     _N_Left_Bound = _N_Fields;
     _N_Right_Bound = _N_Fields;
-    _ODESolver.SetDOF(_ODE_DOF,_N_Left_Bound,200);
+    _ODESolver.SetDOF(_ODE_DOF,_N_Left_Bound,1000);
     VD left_bound;
     VD right_bound;
     for (size_t i = 0; i < _N_Fields; i++)
@@ -58,7 +59,7 @@ bool DWSolver::Solve(VD &X, VVD &Y)
     }
     _ODESolver.SetBoundary(-_x_half_range,_x_half_range,left_bound,right_bound);
     _ODESolver.SetMaxIteration(10000);
-    _ODESolver.SetConvergeCriterion(1.0,1e-8);
+    _ODESolver.SetConvergeCriterion(1.0,1e-10);
     _ODESolver.SetODESystem(DIFEQ_DW,this);
     VD scales(4,1);
     _ODESolver.SetScales(scales);
@@ -66,8 +67,8 @@ bool DWSolver::Solve(VD &X, VVD &Y)
     if (!good) return good;
     VD X_Solved = _ODESolver.GetX();
     VVD Y_Solved = _ODESolver.GetY();
-    X = X_Solved/_overall_scale;
-    Y.clear();
+    _X = X_Solved/_overall_scale;
+    _Y.clear();
     for (size_t i = 0; i < Y_Solved.size(); i++)
     {
         VD y;
@@ -75,8 +76,10 @@ bool DWSolver::Solve(VD &X, VVD &Y)
         {
             y.push_back(Y_Solved[i][j]*_overall_scale);
         }
-        Y.push_back(y);
+        _Y.push_back(y);
     }
+    X = _X;
+    Y = _Y;
     return good;
 }
 void DWSolver::SetDWODE(const Relaxation_Param relax_param, VVD &S)
@@ -184,5 +187,45 @@ void DWSolver::SetDWODE_Body(const Relaxation_Param relax_param, VVD &S)
             }
         }
         S[i+_N_Fields][relax_param.k_coeff] = dy[i+_N_Fields] - dz*dV[i];
+    }
+}
+
+void DWSolver::PrintSolution()
+{
+    cout<<"The Solution is:"<<endl;
+    cout<<"x\t";
+    for (size_t i = 0; i < _N_Fields; i++)
+    {
+        cout<<"y_"<<i<<"\t";
+    }
+    cout<<endl;
+    for (size_t i = 0; i < _X.size(); i++)
+    {
+        cout<<_X[i]<<"\t";
+        for (size_t j = 0; j < _N_Fields; j++)
+        {
+            cout<<_Y[i][j]<<"\t";
+        }
+        cout<<endl;
+    }
+}
+void DWSolver::DumpSolution(string filename)
+{
+    ofstream output(filename.c_str());
+    // output<<"The Solution is:"<<endl;
+    output<<"x\t";
+    for (size_t i = 0; i < _N_Fields; i++)
+    {
+        output<<"y_"<<i<<"\t";
+    }
+    output<<endl;
+    for (size_t i = 0; i < _X.size(); i++)
+    {
+        output<<_X[i]<<"\t";
+        for (size_t j = 0; j < _N_Fields; j++)
+        {
+            output<<_Y[i][j]<<"\t";
+        }
+        output<<endl;
     }
 }

@@ -60,4 +60,22 @@ public:
 
 };
 
+// class Toy: public Potential, public SM
+// {
+// // Toy model following Brawn's thesis Sec. E.2
+// private:
+//     double _lambda;
+//     double _eta;
+// public:
+//     Toy(){};
+//     Toy(double lambda, double eta);
+//     ~Toy(){};
+
+//     virtual double Vtotal(VD field_values, double scale = 1);
+//     virtual VD dVtotal(VD field_values, double scale = 1);
+//     virtual VVD d2Vtotal(VD field_values, double scale = 1);
+//     virtual double V0_global(double scale = 1);
+
+// };
+
 #endif //CXSM_WITH_Z2
