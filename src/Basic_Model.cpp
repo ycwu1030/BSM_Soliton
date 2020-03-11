@@ -31,19 +31,25 @@ Basic_Model::Basic_Model():Potential()
 {
     _Solved = false; 
     _N_VEVs = 0; 
-    _NLocalExtreme = 0; 
-    _NLocalMinima = 0; 
-    _IndexInput = -1;
+    Clear_Local_Cache();
 }
 Basic_Model::Basic_Model(int Field_Dim):Potential(Field_Dim)
 {
     _Solved = false; 
     _N_VEVs = Field_Dim; 
-    _NLocalExtreme = 0; 
-    _NLocalMinima = 0; 
-    _IndexInput = -1;
+    Clear_Local_Cache();
 }
-
+void Basic_Model::Clear_Local_Cache()
+{
+    _NLocalMinima=0;
+    _NLocalExtreme=0;
+    _IndexInput = -1;
+    _localExtreme.clear();
+    _MinimaIndex.clear();
+    _localExtreme.clear();
+    _LocalMinimaQ.clear();
+    _Vtotal.clear();
+}
 bool Basic_Model::CheckGlobalMinimum()
 {
     FindLocalMinima();

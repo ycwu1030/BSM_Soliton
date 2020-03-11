@@ -64,6 +64,7 @@ void cxSM_Z2::Set_Potential_Parameters(double mu2, double lam, double del2, doub
         }
     }
     _Solved = false;
+    FindLocalMinima();
 }
 
 void cxSM_Z2::Set_Physical_Parameters(double vs, double theta, double MHH)
@@ -88,6 +89,7 @@ void cxSM_Z2::Set_Physical_Parameters(double vs, double theta, double MHH)
     _b2   = -(_d2*_vs*_vs + _del2*_vev*_vev)/2;
 
     _Solved = false;
+    FindLocalMinima();
 }
 
 double cxSM_Z2::Vtotal(VD field_values, double scale)
@@ -166,9 +168,7 @@ void cxSM_Z2::FindLocalMinima()
         return;
     }
     
-    _NLocalMinima=0; // Track we are getting which solution
-    _NLocalExtreme=0;
-    _IndexInput = -1;
+    Clear_Local_Cache();
 
 // ! First solution is vh = 0, vs = 0
     _localExtreme.push_back({0,0});
@@ -192,6 +192,9 @@ void cxSM_Z2::FindLocalMinima()
     if ((2*_b2*_del2-4*_d2*_mu2)/(4*_d2*_lam-_del2*_del2) >= 0 && (_del2*_mu2-2*_b2*_lam)/(4*_d2*_lam-_del2*_del2) >= 0)
     {
         _localExtreme.push_back({sqrt((2*_b2*_del2-4*_d2*_mu2)/(4*_d2*_lam-_del2*_del2)),2*sqrt((_del2*_mu2-2*_b2*_lam)/(4*_d2*_lam-_del2*_del2))});
+        // cout<<"Checking:  "<<endl;
+        // cout<<_localExtreme[_NLocalExtreme]<<endl;
+        // cout<<_vev<<"\t"<<_vs<<endl;
         if (CloseQ(_localExtreme[_NLocalExtreme],{_vev,_vs}))
         {
             _IndexInput = _NLocalExtreme;

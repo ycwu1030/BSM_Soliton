@@ -192,9 +192,7 @@ void cxSM_Z2_biased::FindLocalMinima()
         return;
     }
     
-    _NLocalMinima=0; // Track we are getting which solution
-    _NLocalExtreme=0;
-    // _IndexInput = -1;
+    Clear_Local_Cache();
 
     int NCurrent;
     double results[3];

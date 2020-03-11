@@ -50,6 +50,7 @@ protected:
 
 // The functions to get the local extreme, and setting the local extreme
     // Both should be re-implemented accordingly in each model
+    void Clear_Local_Cache();
     virtual void FindLocalMinima(){if(_Solved) return; _NLocalExtreme = 0; _NLocalMinima = 0; _IndexInput = -1;_Solved=true;};
     virtual void AppendLocalExtreme();
 

@@ -44,7 +44,7 @@ bool DWSolver::Solve(VD &X, VVD &Y)
     _ODE_DOF = 2*_N_Fields;
     _N_Left_Bound = _N_Fields;
     _N_Right_Bound = _N_Fields;
-    _ODESolver.SetDOF(_ODE_DOF,_N_Left_Bound,1000);
+    _ODESolver.SetDOF(_ODE_DOF,_N_Left_Bound,200);
     VD left_bound;
     VD right_bound;
     for (size_t i = 0; i < _N_Fields; i++)
@@ -59,7 +59,7 @@ bool DWSolver::Solve(VD &X, VVD &Y)
     }
     _ODESolver.SetBoundary(-_x_half_range,_x_half_range,left_bound,right_bound);
     _ODESolver.SetMaxIteration(10000);
-    _ODESolver.SetConvergeCriterion(1.0,1e-10);
+    _ODESolver.SetConvergeCriterion(1.0,1e-8);
     _ODESolver.SetODESystem(DIFEQ_DW,this);
     VD scales(4,1);
     _ODESolver.SetScales(scales);
