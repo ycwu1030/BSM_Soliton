@@ -1,6 +1,7 @@
 
 add_executable(LocalMinimaTest cxSM_Z2_LocalMinimaTest.cpp)
 add_executable(BiasedLocalMinimaTest cxSM_Z2_biased_LocalMinimaTest.cpp)
+add_executable(cxSMZ2DWTest RelaxationDW_cxSMZ2.cpp)
 # add_executable(SolitonTest cxSM_SolitonTest.cpp)
 # add_executable(SolitonShoot cxSM_SolitonShooting.cpp)
 # add_executable(ToyTest cxSM_SolitonToyTest.cpp)
@@ -16,6 +17,7 @@ add_executable(BiasedLocalMinimaTest cxSM_Z2_biased_LocalMinimaTest.cpp)
 
 target_link_libraries(LocalMinimaTest ${cxSMSoliton_LIBRARY})
 target_link_libraries(BiasedLocalMinimaTest ${cxSMSoliton_LIBRARY})
+target_link_libraries(cxSMZ2DWTest ${cxSMSoliton_LIBRARY})
 # target_link_libraries(SolitonTest ${cxSMSoliton_LIBRARY})
 # target_link_libraries(SolitonShoot ${cxSMSoliton_LIBRARY})
 # target_link_libraries(ToyTest ${cxSMSoliton_LIBRARY})
