@@ -231,7 +231,42 @@ void cxSM_Z2_biased::FindLocalMinima()
     
     _Solved=true;
 }
-
+bool cxSM_Z2_biased::GetBiasedMirrorMinimum(VD &mirror)
+{
+    VD current;
+    VD localtemp;
+    VD guessed = {_vev, -_vs};
+    double dis_cur;
+    double dis_tmp;
+    bool good=false;
+    int id;
+    if (_NLocalMinima < 2) return good;
+    for (size_t i = 0; i < _NLocalMinima; i++)
+    {
+        id = _MinimaIndex[i];
+        if (_IndexInput == id)
+        {
+            continue;
+        }
+        if (!good)
+        {
+            current = _localExtreme[id];
+            good = true;
+        }
+        else
+        {
+            localtemp = _localExtreme[id];
+            dis_cur = sqrt((current-guessed)*(current-guessed));
+            dis_tmp = sqrt((localtemp-guessed)*(localtemp-guessed));
+            if (dis_tmp < dis_cur)
+            {
+                current = localtemp;
+            }
+        }
+    }
+    mirror = current;
+    return good;
+}
 void cxSM_Z2_biased::PrintParameters()
 {
     cout<<"Potential Parameter: "<<endl;

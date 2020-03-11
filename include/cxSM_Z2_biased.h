@@ -44,6 +44,8 @@ public:
 
     virtual void PrintParameters();
 
+    bool GetBiasedMirrorMinimum(VD &mirror);
+
 };
 
 #endif //CXSM_Z2_BIASED
