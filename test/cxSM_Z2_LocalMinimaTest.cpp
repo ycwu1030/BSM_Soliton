@@ -11,17 +11,5 @@ int main(int argc, char const *argv[])
     cout<<"Stability: "<<model.CheckStability()<<endl;
     cout<<"Unitarity: "<<model.CheckUnitarity()<<endl;
     cout<<"Global Min: "<<model.CheckGlobalMinimum()<<endl;
-    VD x(2);
-    x[0]=0;
-    x[1]=1;
-    VVD f(2,VD(2));
-    VD ff(2);
-    ff[0] = 246;
-    ff[1] = 10;
-    f.push_back(ff);
-    ff[0] = 246;
-    ff[1] = -10;
-    f.push_back(ff);
-    cout<<"Total Energy: "<<model.GetTotalEnergy(x,f)<<endl;
     return 0;
 }
