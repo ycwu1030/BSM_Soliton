@@ -6,6 +6,12 @@ bool CloseQ(double x1, double x2)
 {
     return abs(x1-x2)<1e-2;
 }
+bool CloseQ(VD x1, VD x2)
+{
+    VD difs = x1-x2;
+    double distance = sqrt(difs*difs);
+    return distance<1e-2;
+}
 vector<double> operator+(const vector<double> &lhs, const vector<double> &rhs){
     vector<double> res;
     for (int i = 0; i < lhs.size(); ++i)
@@ -132,4 +138,14 @@ VVD operator/(const VVD &lhs, const double &s)
         res.push_back(lhs[i]/s);
     }
     return res;
+}
+
+ostream& operator<<(ostream& out, const VD& s)
+{
+    for (size_t i = 0; i < s.size()-1; i++)
+    {
+        out<<s[i]<<"\t";
+    }
+    out<<s[s.size()-1];
+    return out;
 }

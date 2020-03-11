@@ -24,7 +24,6 @@ protected:
 private:
     CubicSolver _Solver;
     void SolveCubicEquation(double A[4], double *results, int &NSolution);
-    void SetLocalExtreme();
 
 public:
     cxSM_Z2_biased();
@@ -44,7 +43,6 @@ public:
     // virtual bool CheckGlobalMinimum();
 
     virtual void PrintParameters();
-    virtual void PrintLocalMinima();
 
 };
 

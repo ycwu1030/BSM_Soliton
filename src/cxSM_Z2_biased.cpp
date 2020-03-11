@@ -31,10 +31,10 @@ void cxSM_Z2_biased::Set_Potential_Parameters(double mu2, double lam, double del
     _IndexInput = -1;
     for (size_t i = 0; i < _NLocalExtreme; i++)
     {
-        if (_localS[i] > _vs && _LocalMinimaQ[i])
+        if (_localExtreme[i][1] > _vs && _LocalMinimaQ[i])
         {
-            _vs         = _localS[i];
-            _vev        = _localH[i];
+            _vs         = _localExtreme[i][1];
+            _vev        = _localExtreme[i][0];
             _IndexInput = i;
         }
     }
@@ -102,7 +102,7 @@ void cxSM_Z2_biased::Set_Physical_Parameters(double vs, double theta, double MHH
     _IndexInput = -1;
     for (size_t i = 0; i < _NLocalExtreme; i++)
     {
-        if (CloseQ(_localH[i],_vev)&&CloseQ(_localS[i],_vs))
+        if (CloseQ(_localExtreme[i],{_vev,_vs}))
         {
             _IndexInput = i;
         }
@@ -153,15 +153,6 @@ double cxSM_Z2_biased::V0_global(double scale)
     return Vtotal({_vev,_vs},scale);
 }
 
-void cxSM_Z2_biased::SetLocalExtreme()
-{
-    _Vtotal[_NLocalExtreme]=Vtotal({_localH[_NLocalExtreme],_localS[_NLocalExtreme]});
-    if ((_LocalMinimaQ[_NLocalExtreme]=CheckHessian({_localH[_NLocalExtreme],_localS[_NLocalExtreme]})))
-    {
-        _MinimaIndex[_NLocalMinima++]=_NLocalExtreme;
-    }
-    ++_NLocalExtreme;
-}
 void cxSM_Z2_biased::SolveCubicEquation(double A[4], double *results, int &NSolution)
 {
     NSolution = 0;
@@ -212,9 +203,8 @@ void cxSM_Z2_biased::FindLocalMinima()
     SolveCubicEquation(A,results,NCurrent);
     for (size_t i = 0; i < NCurrent; i++)
     {
-        _localH[_NLocalExtreme] = 0;
-        _localS[_NLocalExtreme] = results[i];
-        SetLocalExtreme();
+        _localExtreme.push_back({0,results[i]});
+        AppendLocalExtreme();
     }
     
 // ! Second case is vh != 0:
@@ -237,23 +227,11 @@ void cxSM_Z2_biased::FindLocalMinima()
         {
             continue;
         }
-        _localH[_NLocalExtreme] = sqrt(vh2temp);
-        _localS[_NLocalExtreme] = vstemp;
-        SetLocalExtreme();
+        _localExtreme.push_back({sqrt(vh2temp),vstemp});
+        AppendLocalExtreme();
     }
     
     _Solved=true;
-}
-
-void cxSM_Z2_biased::PrintLocalMinima()
-{
-    FindLocalMinima();
-    cout<<"The Local Extreme points are: "<<endl;
-    cout<<"ID\tVH\tVS\tLocalMinimumQ\tVtot"<<endl;
-    for (size_t i = 0; i < _NLocalExtreme; i++)
-    {
-        cout<<i<<"\t"<<_localH[i]<<"\t"<<_localS[i]<<"\t"<<_LocalMinimaQ[i]<<"\t"<<_Vtotal[i]<<endl;
-    }
 }
 
 void cxSM_Z2_biased::PrintParameters()

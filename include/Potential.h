@@ -10,7 +10,7 @@ private:
     int _Field_Dim; // The dimension of the field space
 
 public:
-    Potential(){};
+    Potential(){_Field_Dim=0;}
     Potential(int Field_Dim){_Field_Dim = Field_Dim;}
     ~Potential(){};
 

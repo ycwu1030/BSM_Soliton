@@ -1,10 +1,10 @@
 #ifndef CXSM_WITH_Z2
 #define CXSM_WITH_Z2
 
-#include "SM.h"
-#include "Potential.h"
+#include "Basic_Model.h"
+// #include "Potential.h"
 
-class cxSM_Z2: public Potential, public SM
+class cxSM_Z2: public Basic_Model
 {
 protected:
 // Potential Parameter
@@ -23,21 +23,6 @@ protected:
     double _MHL; 
     double _MHL2;
 
-// Local parameter store local extreme points
-    static const int _NExtremeMax = 6;
-    int _NLocalExtreme;
-    int _NLocalMinima;
-    int _IndexInput;
-    int _MinimaIndex[_NExtremeMax];
-    double _localH[_NExtremeMax];
-    double _localS[_NExtremeMax];
-    bool _LocalMinimaQ[_NExtremeMax];
-    double _Vtotal[_NExtremeMax];
-    bool _Solved;
-
-private:
-    void SetLocalExtreme();
-
 public:
     cxSM_Z2();
     ~cxSM_Z2(){};
@@ -53,10 +38,8 @@ public:
     virtual void FindLocalMinima(); 
     virtual bool CheckStability();
     virtual bool CheckUnitarity(double MAX=0.5);
-    virtual bool CheckGlobalMinimum();
 
     virtual void PrintParameters();
-    virtual void PrintLocalMinima();
 
 };
 
