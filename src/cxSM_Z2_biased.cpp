@@ -69,7 +69,7 @@ void cxSM_Z2_biased::Set_Potential_Parameters(double mu2, double lam, double del
     _MHA = sqrt(_MHA2);
 }
 
-void cxSM_Z2_biased::Set_Physical_Parameters(double vs, double theta, double MHH, double MHA, double del1, double c1, double c2)
+void cxSM_Z2_biased::Set_Physical_Parameters_del1_c1_c2(double vs, double theta, double MHH, double MHA, double del1, double c1, double c2)
 {
     _MHL = MHL;
     _MHH = MHH;
@@ -94,6 +94,46 @@ void cxSM_Z2_biased::Set_Physical_Parameters(double vs, double theta, double MHH
     _del2 = (4*sth*cth*(_MHL2-_MHH2)-sqrt(2)*_del1*_vev)/2/_vs/_vev;
     _d2   = -2*(3*sqrt(2)*_c1*_vs+sqrt(2)*_c2*_vs-3*_MHL2*sth*sth-3*_MHH2*cth*cth+3*_MHA2)/3/_vs/_vs;
     _a1   = (-2*_vs*(_vs*(9*_c1+_c2)+6*sqrt(2)*_MHA2)-3*_del1*_vev*_vev)/24;
+    _mu2  = -(4*_lam*_vev*_vev + _del2*_vs*_vs + sqrt(2)*_del1*_vs)/4;
+    _b2   = -(8*sqrt(2)*_a1 + 2*sqrt(2)*(_c1+_c2)*_vs*_vs + 2*_d2*_vs*_vs*_vs + sqrt(2)*_del1*_vev*_vev + 2*_del2*_vev*_vev*_vs)/4/_vs;
+
+    _Solved = false;
+    FindLocalMinima();
+    _IndexInput = -1;
+    for (size_t i = 0; i < _NLocalExtreme; i++)
+    {
+        if (CloseQ(_localExtreme[i],{_vev,_vs}))
+        {
+            _IndexInput = i;
+        }
+    }
+}
+
+void cxSM_Z2_biased::Set_Physical_Parameters_a1_c1_c2(double vs, double theta, double MHH, double MHA, double a1, double c1, double c2)
+{
+    _MHL = MHL;
+    _MHH = MHH;
+    _MHA = MHA;
+
+    _MHL2 = _MHL * _MHL;
+    _MHH2 = _MHH * _MHH;
+    _MHA2 = _MHA * _MHA;
+
+    _vev   = vev;
+    _vs    = vs;
+    _theta = theta;
+
+    _a1   = a1;
+    _c1   = c1;
+    _c2   = c2;
+
+    double cth = cos(_theta);
+    double sth = sin(_theta);
+
+    _lam  = (_MHL2*cth*cth + _MHH2*sth*sth)/2/_vev/_vev;
+    _del2 = (12*sqrt(2)*_a1+_vs*(sqrt(2)*_vs*(9*_c1+_c2)+12*_MHA2)+3*_vev*2*sth*cth*(_MHL2-_MHH2))/3/_vs/_vev/_vev;
+    _d2   = -2*(3*sqrt(2)*_c1*_vs+sqrt(2)*_c2*_vs-3*_MHL2*sth*sth-3*_MHH2*cth*cth+3*_MHA2)/3/_vs/_vs;
+    _del1   = -2*(12*_a1+_vs*(_vs*(9*_c1+_c2)+6*sqrt(2)*_MHA2))/3/_vev/_vev;
     _mu2  = -(4*_lam*_vev*_vev + _del2*_vs*_vs + sqrt(2)*_del1*_vs)/4;
     _b2   = -(8*sqrt(2)*_a1 + 2*sqrt(2)*(_c1+_c2)*_vs*_vs + 2*_d2*_vs*_vs*_vs + sqrt(2)*_del1*_vev*_vev + 2*_del2*_vev*_vev*_vs)/4/_vs;
 

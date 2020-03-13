@@ -5,7 +5,7 @@ using namespace std;
 int main(int argc, char const *argv[])
 {
     cxSM_Z2_biased model;
-    model.Set_Physical_Parameters(50,0.1,200,10,0.1,0.1,0.1);
+    model.Set_Physical_Parameters_del1_c1_c2(50,0.1,200,10,0.1,0.1,0.1);
     model.PrintParameters();
     model.PrintLocalMinima();
     cout<<"Stability: "<<model.CheckStability()<<endl;

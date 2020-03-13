@@ -30,7 +30,8 @@ public:
     ~cxSM_Z2_biased(){};
 
     void Set_Potential_Parameters(double mu2, double lam, double del2, double b2, double d2, double del1, double a1, double c1, double c2);
-    void Set_Physical_Parameters(double vs, double theta, double MHH, double MHA, double del1, double c1, double c2);
+    void Set_Physical_Parameters_del1_c1_c2(double vs, double theta, double MHH, double MHA, double del1, double c1, double c2);
+    void Set_Physical_Parameters_a1_c1_c2(double vs, double theta, double MHH, double MHA, double a1, double c1, double c2);
 
     virtual double Vtotal(VD field_values, double scale = 1);
     virtual VD dVtotal(VD field_values, double scale = 1);

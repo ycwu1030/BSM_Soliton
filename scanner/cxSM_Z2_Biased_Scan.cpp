@@ -19,6 +19,7 @@ int main(int argc, char const *argv[])
     double MHH;
     double MHA;
     double theta;
+    double a1;
     double del1;
     double c1;
     double c2;
@@ -36,10 +37,17 @@ int main(int argc, char const *argv[])
         MHH = RandomReal(0,500);
         MHA = RandomReal(0,200);
         theta = RandomReal(0,0.5);
-        del1 = RandomReal(-0.1,0.1);
-        c1 = RandomReal(-0.1,0.1);
-        c2 = RandomReal(-0.1,0.1);
-        model.Set_Physical_Parameters(vs,theta,MHH,MHA,del1,c1,c2);
+        a1 = 0;
+        c1 = 0;
+        c2 = 0;
+        model.Set_Physical_Parameters_a1_c1_c2(vs,theta,MHH,MHA,a1,c1,c2);
+        /* 
+        * If scan over del1 c1 and c2 using following
+        * del1 = RandomReal(-0.1,0.1);
+        * c1 = RandomReal(-0.1,0.1);
+        * c2 = RandomReal(-0.1,0.1);
+        * model.Set_Physical_Parameters_del1_c1_c2(vs,theta,MHH,MHA,del1,c1,c2);
+        */
         if (!model.CheckStability()||!model.CheckUnitarity()||!model.CheckGlobalMinimum()) continue;
         good = model.GetBiasedMirrorMinimum(left);
         if (!good) continue;
@@ -49,7 +57,7 @@ int main(int argc, char const *argv[])
         good = solver.Solve(X,Y);
         if (!good) continue;
         ++NGOT;
-        output<<NGOT<<"\t"<<vs<<"\t"<<MHH<<"\t"<<MHA<<"\t"<<theta<<"\t"<<del1<<"\t"<<c1<<"\t"<<c2<<"\t"<<model.GetTotalEnergy(X,Y)<<"\t"<<model.GetTension(X,Y)<<endl;
+        output<<NGOT<<"\t"<<vs<<"\t"<<MHH<<"\t"<<MHA<<"\t"<<theta<<"\t"<<a1<<"\t"<<c1<<"\t"<<c2<<"\t"<<model.GetTotalEnergy(X,Y)<<"\t"<<model.GetTension(X,Y)<<endl;
     }
     // SS.PrintSolitonSolution();
     // SS.DumpSolitonSolution("solution_cxSM.dat");
