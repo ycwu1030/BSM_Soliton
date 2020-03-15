@@ -2,7 +2,7 @@
 #define CXSM_CP
 
 #include "Basic_Model.h"
-#include "CubicSolver.h"
+#include <Eigen/Dense>
 
 class cxSM_CP: public Basic_Model
 {
@@ -34,21 +34,20 @@ protected:
     double _MHH2;
     double _MHA2;
 
+// Another way of vs and alpha:
+    double _vsr;
+    double _vsi;
+
 // The mixing matrix elements
-    double _R11;
-    double _R12;
-    double _R13;
-    double _R22;
-    double _R23;
-    double _R33;
+    Eigen::Matrix3d _R;
 
 
 // Local parameter store local extreme points
     // From cxSM_Z2, no need to redefine;
 
 private:
-    CubicSolver _Solver;
-    void SolveCubicEquation(double A[4], double *results, int &NSolution);
+    double _mag(double vsr, double vsi);
+    double _arg(double vsr, double vsi);
 
 public:
     cxSM_CP();
