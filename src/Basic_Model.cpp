@@ -65,7 +65,7 @@ bool Basic_Model::CheckGlobalMinimum()
         for (size_t i = 0; i < _NLocalMinima; i++)
         {
             if ( i == _IndexInput ) continue;
-            goodEW *= (VtotEW <= (_Vtotal[_MinimaIndex[i]]));
+            goodEW *= (VtotEW <= (_Vtotal[_MinimaIndex[i]])+1e-5*abs(_Vtotal[_MinimaIndex[i]]));
         }
         return goodEW;
     }

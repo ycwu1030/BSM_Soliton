@@ -143,13 +143,14 @@ bool cxSM_Z2::CheckStability()
 
 bool cxSM_Z2::CheckUnitarity(double MAX)
 {
-    double EigenA0[4];
+    double EigenA0[5];
     EigenA0[0] = _d2/2;
-    EigenA0[1] = 2*_lam;
-    EigenA0[2] = (_d2+6*_lam-sqrt(_d2*_d2-12*_d2*_lam+2*_del2*_del2+36*_lam*_lam))/2;
-    EigenA0[3] = (_d2+6*_lam+sqrt(_d2*_d2-12*_d2*_lam+2*_del2*_del2+36*_lam*_lam))/2;
+    EigenA0[1] = _del2/2;
+    EigenA0[2] = 2*_lam;
+    EigenA0[3] = (_d2+6*_lam-sqrt(_d2*_d2-12*_d2*_lam+2*_del2*_del2+36*_lam*_lam))/2;
+    EigenA0[4] = (_d2+6*_lam+sqrt(_d2*_d2-12*_d2*_lam+2*_del2*_del2+36*_lam*_lam))/2;
     bool good=true;
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < 5; ++i)
     {
         good*=(abs(EigenA0[i])<MAX*16.0*Pi);
         if (!good)

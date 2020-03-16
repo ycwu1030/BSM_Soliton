@@ -1,5 +1,7 @@
 #include "cxSM_CP.h"
+#include <iostream>
 
+using namespace std;
 using namespace Eigen;
 
 cxSM_CP::cxSM_CP():Basic_Model(3)
@@ -23,13 +25,13 @@ void cxSM_CP::Set_Potential_Parameters(double mu2, double lam, double del2, doub
     FindLocalMinima();
 
     _vev = 0;
-    _vs = 0;
+    _vsr = 0;
     _alpha = 0;
     _IndexInput = -1;
 
     for (size_t i = 0; i < _NLocalExtreme; i++)
     {
-        if (_LocalMinimaQ[i] && _localExtreme[i][0] > _vev && _localExtreme[i][1] > _vs)
+        if (_LocalMinimaQ[i] && _localExtreme[i][0] > _vev && _localExtreme[i][1] > _vsr)
         {
             _vev = _localExtreme[i][0];
             _vsr = _localExtreme[i][1];
@@ -37,6 +39,9 @@ void cxSM_CP::Set_Potential_Parameters(double mu2, double lam, double del2, doub
             _IndexInput = i;
         }
     }
+    _vs = _mag(_vsr,_vsi);
+    _alpha = _arg(_vsr,_vsi);
+
     Matrix3d MM2;
     MM2(0,0) = 2*_lam*_vev*_vev;
     MM2(0,1) = (_del2+_del3)*_vev*_vsr/2;
@@ -73,6 +78,9 @@ void cxSM_CP::Set_Physical_Parameters(double vsr, double vsi, double MHH, double
     _vev = vev;
     _vsr = vsr;
     _vsi = vsi;
+
+    _vs = _mag(_vsr,_vsi);
+    _alpha = _arg(_vsr,_vsi);
 
     _MHL = MHL;
     _MHH = MHH;
@@ -142,7 +150,7 @@ void cxSM_CP::FindLocalMinima()
     }
 
     // ! v = 0, vsr = 0, vsi2 = -2(b2-b1)/(d1+d2-d3)
-    if (-2*(_b2-_b1)/(_d1+_d2-_d3))
+    if (-2*(_b2-_b1)/(_d1+_d2-_d3)>=0)
     {
         _localExtreme.push_back({0,0,sqrt(-2*(_b2-_b1)/(_d1+_d2-_d3))});
         AppendLocalExtreme();
@@ -340,7 +348,7 @@ void cxSM_CP::_GetR()
     _R(2,1) = -(c1*s2+s1*s2*c3);
     _R(2,2) = c2*c3;
 }
-double cxSM_CP::Vtotal(VD field_values, double scale = 1)
+double cxSM_CP::Vtotal(VD field_values, double scale)
 {
     double vh = field_values[0];
     double vsr = field_values[1];
@@ -351,7 +359,7 @@ double cxSM_CP::Vtotal(VD field_values, double scale = 1)
 
     return (-_b1*vsi2/4+_b1*vsr2/4+_b2*vsi2/4+_b2*vsr2/4+_d1*vsi2*vsi2/16-3*_d1*vsi2*vsr2/8+_d1*vsr2*vsr2/16+_d2*vsi2*vsi2/16+_d2*vsi2*vsr2/8+_d2*vsr2*vsr2/16-_d3*vsi2*vsi2/16+_d3*vsr2*vsr2/16+_lam*vh2*vh2/4+_mu2*vh2/2+_del2*vh2*vsi2/8-_del3*vh2*vsi2/8+_del2*vh2*vsr2/8+_del3*vh2*vsr2/8)/pow(scale,4);
 }
-VD cxSM_CP::dVtotal(VD field_values, double scale = 1)
+VD cxSM_CP::dVtotal(VD field_values, double scale)
 {
     double vh = field_values[0];
     double vsr = field_values[1];
@@ -367,7 +375,7 @@ VD cxSM_CP::dVtotal(VD field_values, double scale = 1)
 
     return res/pow(scale,3);
 }
-VVD cxSM_CP::d2Vtotal(VD field_values, double scale = 1)
+VVD cxSM_CP::d2Vtotal(VD field_values, double scale)
 {
     double vh = field_values[0];
     double vsr = field_values[1];
@@ -389,7 +397,191 @@ VVD cxSM_CP::d2Vtotal(VD field_values, double scale = 1)
 
     return res/pow(scale,2);
 }
-double cxSM_CP::V0_global(double scale = 1)
+double cxSM_CP::V0_global(double scale)
 {
     return Vtotal({_vev,_vsr,_vsi},scale);
+}
+double cxSM_CP::_Vstab(double sth2, double c2phi)
+{
+    return 4*_lam + sth2*(2*(_del2-4*_lam)+2*_del3*c2phi) + sth2*sth2*(2*_d1*c2phi*c2phi-_d1+_d2-2*_del2+4*_lam+(_d3-2*_del3)*c2phi);
+}
+double ExtremeQuadratic(double a, double b, double c)
+{
+    // Return the extreme value of a quadratic function:
+    // a*x^2 + b*x + c;
+    double xext = -b/a/2;
+    return a*xext*xext + b*xext + c;
+}
+bool cxSM_CP::CheckStability()
+{
+/*
+* We parameterize the quartic part of the potential as:
+* h = r cos(theta)
+* s = r sin(theta)cos(phi)
+* A = r sin(theta)sin(phi)
+* Then the quartic part will be something like r^4*f(sth2,c2phi);
+* we need to make sure that for every possible value:
+* sth2 [0,1] and c2phi [-1,1]
+* the function f should be positive. 
+*/
+    // ! First, the four corners at:
+    // ! 1. sth2 = 0, c2phi = -1;
+    // ! 2. sth2 = 0, c2phi = 1;
+    // ! 3. sth2 = 1, c2phi = -1;
+    // ! 4. sth2 = 1, c2phi = 1;
+    if (_lam < 0 || _d1+_d2-_d3 < 0 || _d1+_d2+_d3 < 0)
+    {
+        return false;
+    }
+    // ! Second, along four edges.
+    // ! 1. sth2 = 0
+    // ! 2. sth2 = 1
+    // ! 3. c2phi = -1
+    // ! 4. c2phi = 1
+    // ! 
+    // ! For sth2 = 0, it is just 4 lam, which is already forced to be positive
+    // ! For sth2 = 1:
+    // ! f(sth2,c2phi) = 2*_d1*c2phi^2 + _d3*c2phi - _d1 + _d2;
+    // ! At two edges c2phi = -1 and c2phi = 1 the situation is covered by considering the four corners above. So only need to consider the region in between when the extreme point is in between.
+    double central = -_d3/_d1/4;
+    if (central >= -1 || central <= 1)
+    {
+        if (_d1 > 0 && ExtremeQuadratic(2*_d1,_d3,-_d1+_d2) < 0)
+        {
+            return false;
+        }
+    }
+    // ! For c2phi = -1
+    // ! f(s2th,c2phi) = (d1+d2-d3-2*del2+2*del3+4*lam)*s2th^2 + 2*(del2-del3-4*lam)*s2th + 4*lam
+    // ! 
+    central = -(_del2-_del3-4*_lam)/(_d1+_d2-_d3-2*_del2+2*_del3+4*_lam);
+    if (central >=0 && central <= 1)
+    {
+        if (_d1+_d2-_d3-2*_del2+2*_del3+4*_lam > 0 && ExtremeQuadratic(_d1+_d2-_d3-2*_del2+2*_del3+4*_lam,2*(_del2-_del3-4*_lam),4*_lam) < 0)
+        {
+            return false;
+        }
+    }
+
+    // ! For c2phi = 1
+    // ! f(sth2,c2phi) = (d1+d2+d3-2(del2+del3)+4*lam)*sth2^2 + 2(del2+del3-4*lam)*sth2 + 4*lam;
+    // !
+    central = -(_del2+_del3-4*_lam)/(_d1+_d2+_d3-2*(_del2+_del3)+4*_lam);
+    if (central >= 0 && central <= 1)
+    {
+        if (_d1+_d2+_d3-2*(_del2+_del3)+4*_lam > 0 && ExtremeQuadratic(_d1+_d2+_d3-2*(_del2+_del3)+4*_lam,2*(_del2+_del3-4*_lam),4*_lam) < 0)
+        {
+            return false;
+        }
+    }
+
+    // ! Beside corners and edges, we consider the region inside
+    // ! For simplicity, we only need to consider the extreme point (no matter it is maximum or minimum).
+    // ! The function is:
+    // ! f(sth2, c2phi) = (2*_d1*c2phi^2 + (d3-2*del3)*c2phi - d1 + d2 - 2*del2 + 4*lam)*sth2^2 + (2*del3*c2phi+2*(del2-4*lam))*sth2 + 4*lam;
+    // ! Fortunately, the extreme points can be solve analytically:
+    // ! 1. sth2 = 0, c2phi = (4*lam-del2)/del3;
+    // ! 2. sth2 = (8*d1*(del2-4*lam)-2*del3*(d3-2*del3))/(8*d1*d1-8*d1*(d2-2*del2+4*lam)+(d3-2*del3)^2)
+    // !    c2phi = -(2*del3*(d1-d2+del2)+d3*(del2-4*lam))/(4*d1*(del2-4*lam)+del3*(2*del3-d3));
+    // ! The first solution is already covered when we consider the four edges.
+    double sth2 = (8*_d1*(_del2-4*_lam)-2*_del3*(_d3-2*_del3))/(8*_d1*_d1-8*_d1*(_d2-2*_del2+4*_lam)+pow(_d3-2*_del3,2));
+    double c2phi = -(2*_del3*(_d1-_d2+_del2)+_d3*(_del2-4*_lam))/(4*_d1*(_del2-4*_lam)+_del3*(2*_del3-_d3));
+    if (sth2 >= 0 && sth2 <= 1 && c2phi >= -1 && c2phi <= 1)
+    {
+        double ftmp = sth2*sth2*(2*_d1*c2phi*c2phi+(_d3-2*_del3)*c2phi-_d1+_d2-2*_del2+4*_lam);
+        ftmp += sth2*(2*_del3*c2phi+2*(_del2-4*_lam));
+        ftmp += 4*_lam;
+        if (ftmp < 0)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+typedef Matrix<double, 5, 5> Matrix5d;
+bool cxSM_CP::CheckUnitarity(double MAX)
+{
+    bool good = true;
+    // ! For CP Odd part
+    double eigensCPOdd[4];
+    eigensCPOdd[0] = (_del2-_del3)/2;
+    eigensCPOdd[1] = 2*_lam;
+    eigensCPOdd[2] = (_d2-3*_d1)/2;
+    eigensCPOdd[3] = (_del2+_del3)/2;
+    for (int i = 0; i < 4; i++)
+    {
+        good*=(abs(eigensCPOdd[i])<MAX*16.0*Pi);
+        if (!good)
+        {
+            return good;
+        }
+    }
+
+    // ! For CP Even part (we have neglect two dimension, where they have the same eigenvalues as in CP Odd)
+    Matrix5d M2C0CPEven;
+    M2C0CPEven(0,0) = 3*_lam;
+    M2C0CPEven(0,1) = (_del2+_del3)/4;
+    M2C0CPEven(0,2) = (_del2-_del3)/4;
+    M2C0CPEven(0,3) = _lam;
+    M2C0CPEven(0,4) = sqrt(2)*_lam;
+    M2C0CPEven(1,0) = M2C0CPEven(0,1);
+    M2C0CPEven(1,1) = 3*(_d1+_d2+_d3)/4;
+    M2C0CPEven(1,2) = (_d2-3*_d1)/4;
+    M2C0CPEven(1,3) = (_del2+_del3)/4;
+    M2C0CPEven(1,4) = (_del2+_del3)/2/sqrt(2);
+    M2C0CPEven(2,0) = M2C0CPEven(0,2);
+    M2C0CPEven(2,1) = M2C0CPEven(1,2);
+    M2C0CPEven(2,2) = 3*(_d1+_d2-_d3)/4;
+    M2C0CPEven(2,3) = (_del2-_del3)/4;
+    M2C0CPEven(2,4) = (_del2-_del3)/2/sqrt(2);
+    M2C0CPEven(3,0) = M2C0CPEven(0,3);
+    M2C0CPEven(3,1) = M2C0CPEven(1,3);
+    M2C0CPEven(3,2) = M2C0CPEven(2,3);
+    M2C0CPEven(3,3) = 3*_lam;
+    M2C0CPEven(3,4) = sqrt(2)*_lam;
+    M2C0CPEven(4,0) = M2C0CPEven(0,4);
+    M2C0CPEven(4,1) = M2C0CPEven(1,4);
+    M2C0CPEven(4,2) = M2C0CPEven(2,4);
+    M2C0CPEven(4,3) = M2C0CPEven(3,4);
+    M2C0CPEven(4,4) = 4*_lam;
+
+    SelfAdjointEigenSolver<Matrix5d> eigensolver(M2C0CPEven);
+    auto eigens = eigensolver.eigenvalues();
+    for (int i = 0; i < eigens.size(); i++)
+    {
+        good*=(abs(eigens[i])<MAX*16.0*Pi);
+        if (!good)
+        {
+            return good;
+        }
+    }
+    return good;
+}
+
+void cxSM_CP::PrintParameters()
+{
+    cout<<"Potential Parameter: "<<endl;
+    cout<<"mu2:\t"<<_mu2<<endl;
+    cout<<"b1:\t"<<_b1<<endl;
+    cout<<"b2:\t"<<_b2<<endl;
+    cout<<"lam:\t"<<_lam<<endl;
+    cout<<"del2:\t"<<_del2<<endl;
+    cout<<"del3:\t"<<_del3<<endl;
+    cout<<"d1:\t"<<_d1<<endl;
+    cout<<"d2:\t"<<_d2<<endl;
+    cout<<"d3:\t"<<_d3<<endl;
+
+    cout<<"Physical Parameter: "<<endl;
+    cout<<"vev:\t"<<_vev<<endl;
+    cout<<"vsr:\t"<<_vsr<<endl;
+    cout<<"vsi:\t"<<_vsi<<endl;
+    cout<<"vs:\t"<<_vs<<endl;
+    cout<<"alpha:\t"<<_alpha<<endl;
+    cout<<"MHL:\t"<<_MHL<<endl;
+    cout<<"MHH:\t"<<_MHH<<endl;
+    cout<<"MHA:\t"<<_MHA<<endl;
+    cout<<"theta1:\t"<<_theta1<<endl;
+    cout<<"theta2:\t"<<_theta2<<endl;
+    cout<<"theta3:\t"<<_theta3<<endl;
 }

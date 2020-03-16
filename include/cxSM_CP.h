@@ -52,6 +52,9 @@ private:
     void _GetThetas();
     void _GetR();
 
+    // Used for stability 
+    double _Vstab(double sth2, double c2phi);
+
 public:
     cxSM_CP();
     ~cxSM_CP(){};
