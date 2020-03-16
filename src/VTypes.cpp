@@ -149,3 +149,20 @@ ostream& operator<<(ostream& out, const VD& s)
     out<<s[s.size()-1];
     return out;
 }
+
+double GetAngle(double sth, double cth)
+{
+    double angle = asin(sth);
+    if (cth < 0)
+    {
+        if (sth >= 0)
+        {
+            angle = M_PI - angle;
+        }
+        else
+        {
+            angle = -M_PI - angle;
+        }
+    }
+    return angle;
+}
