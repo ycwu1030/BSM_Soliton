@@ -95,10 +95,16 @@ void cxSM_CP::Set_Physical_Parameters(double vsr, double vsi, double MHH, double
     _theta3 = theta3;
 
     _GetR();
+    // cout<<"_R: "<<endl;
+    // cout<<_R<<endl;
 
     _lam  = (_MHL2*pow(_R(0,0),2)+_MHH2*pow(_R(0,1),2)+_MHA2*pow(_R(0,2),2))/2/_vev/_vev;
     _del2 = (_MHA2*_R(0,2)*_R(1,2)*_vsi + _MHA2*_R(0,2)*_R(2,2)*_vsr + _MHH2*_R(0,1)*_R(1,1)*_vsi + _MHH2*_R(0,1)*_R(2,1)*_vsr + _MHL2*_R(0,0)*_R(1,0)*_vsi + _MHL2*_R(0,0)*_R(2,0)*_vsr)/_vev/_vsr/_vsi;
-    _d2   = (3*_vsi*_vsi*(_MHA2*pow(_R(1,2),2)+_MHH2*pow(_R(1,1),2+_MHL2*pow(_R(1,0),2)))+2*_vsi*_vsr*(_MHA2*_R(1,2)*_R(2,2)+_MHH2*_R(1,1)*_R(2,1)+_MHL2*_R(1,0)*_R(2,0))+3*_vsr*_vsr*(_MHA2*pow(_R(2,2),2)+_MHH2*pow(_R(2,1),2)+_MHL2*pow(_R(2,0),2)))/4/_vsi/_vsi/_vsr/_vsr;
+    _d2   = ( 
+        3*_vsi*_vsi*(_MHA2*pow(_R(1,2),2)+_MHH2*pow(_R(1,1),2)+_MHL2*pow(_R(1,0),2))
+        +2*_vsi*_vsr*(_MHA2*_R(1,2)*_R(2,2)+_MHH2*_R(1,1)*_R(2,1)+_MHL2*_R(1,0)*_R(2,0))
+        +3*_vsr*_vsr*(_MHA2*pow(_R(2,2),2)+_MHH2*pow(_R(2,1),2)+_MHL2*pow(_R(2,0),2))
+        )/4/_vsi/_vsi/_vsr/_vsr;
     _del3 = (_vsi*(_MHA2*_R(0,2)*_R(1,2)+_MHH2*_R(0,1)*_R(1,1)+_MHL2*_R(0,0)*_R(1,0))-_vsr*(_MHA2*_R(0,2)*_R(2,2)+_MHH2*_R(0,1)*_R(2,1)+_MHL2*_R(0,0)*_R(2,0)))/_vev/_vsi/_vsr;
     _d1   = (_MHA2*pow(_R(1,2)*_vsi-_R(2,2)*_vsr,2)+_MHH2*pow(_R(1,1)*_vsi-_R(2,1)*_vsr,2)+_MHL2*pow(_R(1,0)*_vsi-_R(2,0)*_vsr,2))/4/_vsr/_vsr/_vsi/_vsi;
     _d3   = (_MHA2*pow(_R(1,2),2)+_MHH2*pow(_R(1,1),2)+_MHL2*pow(_R(1,0),2))/_vsr/_vsr - (_MHA2*pow(_R(2,2),2)+_MHH2*pow(_R(2,1),2)+_MHL2*pow(_R(2,0),2))/_vsi/_vsi;
@@ -345,7 +351,7 @@ void cxSM_CP::_GetR()
     _R(1,1) = c1*c3-s1*s2*s3;
     _R(1,2) = c2*s3;
     _R(2,0) = -c1*s2*c3+s1*s3;
-    _R(2,1) = -(c1*s2+s1*s2*c3);
+    _R(2,1) = -(c1*s3+s1*s2*c3);
     _R(2,2) = c2*c3;
 }
 double cxSM_CP::Vtotal(VD field_values, double scale)
