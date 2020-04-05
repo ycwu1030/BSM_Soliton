@@ -73,6 +73,25 @@ public:
     bool Set_Physical_Parameters_vsr_vsi_theta(double vsr, double vsi, double MHH, double MHA, double theta1);
     bool Set_Physical_Parameters_vs_theta(double vs, double MHH, double MHA, double theta1, double theta3);
 
+    void GetVS(double &vs_real, double &vs_img){vs_real = _vsr; vs_img = _vsi;};
+    void GetTheta(int id, double &theta)
+    {
+        switch (id)
+        {
+        case 1:
+            theta = _theta1;
+            return;
+        case 2:
+            theta = _theta2;
+            return;
+        case 3:
+            theta = _theta3;
+            return;
+        default:
+            theta = _theta2;
+            return;
+        }
+    }
     // * Inherit from cxSM_CP
     // virtual double Vtotal(VD field_values, double scale = 1);
     // virtual VD dVtotal(VD field_values, double scale = 1);

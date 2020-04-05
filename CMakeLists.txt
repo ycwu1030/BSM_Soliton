@@ -38,7 +38,9 @@ SET(cxSMSoliton_LIBRARY cxSMSoliton_shared)
 
 add_executable(Z2Scan scanner/cxSM_Z2_Scan.cpp)
 add_executable(Z2BiasedScan scanner/cxSM_Z2_Biased_Scan.cpp)
+add_executable(CPScan scanner/cxSM_CP_reduced_Scan.cpp)
 target_link_libraries(Z2Scan ${cxSMSoliton_LIBRARY})
 target_link_libraries(Z2BiasedScan ${cxSMSoliton_LIBRARY})
+target_link_libraries(CPScan ${cxSMSoliton_LIBRARY})
 
 add_subdirectory(test)
