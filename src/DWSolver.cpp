@@ -1,6 +1,7 @@
 #include "DWSolver.h"
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 using namespace std;
 
 void DIFEQ_DW(const Relaxation_Param relax_param, void *param, VVD &S)
@@ -44,7 +45,7 @@ bool DWSolver::Solve(VD &X, VVD &Y)
     _ODE_DOF = 2*_N_Fields;
     _N_Left_Bound = _N_Fields;
     _N_Right_Bound = _N_Fields;
-    _ODESolver.SetDOF(_ODE_DOF,_N_Left_Bound,200);
+    _ODESolver.SetDOF(_ODE_DOF,_N_Left_Bound,500);
     VD left_bound;
     VD right_bound;
     for (size_t i = 0; i < _N_Fields; i++)
@@ -219,6 +220,7 @@ void DWSolver::DumpSolution(string filename)
         output<<"y_"<<i<<"\t";
     }
     output<<endl;
+    output<<scientific;//<<setprecision(8);
     for (size_t i = 0; i < _X.size(); i++)
     {
         output<<_X[i]<<"\t";
