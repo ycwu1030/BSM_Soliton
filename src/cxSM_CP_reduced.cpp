@@ -222,17 +222,80 @@ bool cxSM_CP_reduced::_GetAlphaTheta2(const double vs, const double MHH, const d
     }
     double x1 = (-K1+sqrt(delta))/2/K2;
     double x2 = (-K1-sqrt(delta))/2/K2;
-    double sth2_tmp = abs(x1)<abs(x2)?x1:x2;
-    if (abs(sth2_tmp) > 1)
+    // double sth2_tmp = abs(x1)<abs(x2)?x1:x2;
+    
+    double sth2_tmp1 = x1;
+    double sth2_tmp2 = x2;
+
+    if (abs(sth2_tmp1)>1 && abs(sth2_tmp2)>1)
     {
-        return true; // We have pi/2 solution
+        return true;
     }
     
-    theta2 = asin(sth2_tmp); // * assume cth2 > 0, cth2 < 0 should be equivalent (!not varified)
 
-    double ta = ((-m12 + m22)*cos(theta1)*cos(theta3)*sin(theta1) + sth2_tmp*(m32 - m12*pow(cos(theta1),2) - m22*pow(sin(theta1),2))*sin(theta3))/(sth2_tmp*cos(theta3)*(m32 - m12*pow(cos(theta1),2) - m22*pow(sin(theta1),2)) + (m12 - m22)*cos(theta1)*sin(theta1)*sin(theta3));
+    double ta1 = ((-m12 + m22)*cos(theta1)*cos(theta3)*sin(theta1) + sth2_tmp1*(m32 - m12*pow(cos(theta1),2) - m22*pow(sin(theta1),2))*sin(theta3))/(sth2_tmp1*cos(theta3)*(m32 - m12*pow(cos(theta1),2) - m22*pow(sin(theta1),2)) + (m12 - m22)*cos(theta1)*sin(theta1)*sin(theta3));
+    double ta2 = ((-m12 + m22)*cos(theta1)*cos(theta3)*sin(theta1) + sth2_tmp2*(m32 - m12*pow(cos(theta1),2) - m22*pow(sin(theta1),2))*sin(theta3))/(sth2_tmp2*cos(theta3)*(m32 - m12*pow(cos(theta1),2) - m22*pow(sin(theta1),2)) + (m12 - m22)*cos(theta1)*sin(theta1)*sin(theta3));
+
+    if ((ta1 > 0 && ta2 > 0) || (ta1 < 0 && ta2 < 0))
+    {
+        if (abs(sth2_tmp1)<abs(sth2_tmp2))
+        {
+            if (abs(sth2_tmp1)>1)
+            {
+                return true;
+            }
+            theta2 = asin(sth2_tmp1);
+            alpha = atan(1/ta1);
+        }
+        else
+        {
+            if (abs(sth2_tmp2)>1)
+            {
+                return true;
+            }
+            theta2 = asin(sth2_tmp2);
+            alpha = atan(1/ta2);
+        }
+    }
+    else if (ta1 > 0 && ta2 < 0)
+    {
+        if (abs(sth2_tmp1) > 1)
+        {
+            theta2 = asin(sth2_tmp2);
+            alpha = atan(1/ta2);
+        }
+        else
+        {
+            theta2 = asin(sth2_tmp1);
+            alpha = atan(1/ta1);
+        }
+    }
+    else if (ta1 < 0 && ta2 > 0)
+    {
+        if (abs(sth2_tmp2) > 1)
+        {
+            theta2 = asin(sth2_tmp1);
+            alpha = atan(1/ta1);
+        }
+        else
+        {
+            theta2 = asin(sth2_tmp2);
+            alpha = atan(1/ta2);
+        }
+    }
     
-    alpha = atan(1/ta);
+    
+    
+    // if (abs(sth2_tmp) > 1)
+    // {
+    //     return true; // We have pi/2 solution
+    // }
+    
+    // theta2 = asin(sth2_tmp); // * assume cth2 > 0, cth2 < 0 should be equivalent (!not varified)
+
+    // double ta = ((-m12 + m22)*cos(theta1)*cos(theta3)*sin(theta1) + sth2_tmp*(m32 - m12*pow(cos(theta1),2) - m22*pow(sin(theta1),2))*sin(theta3))/(sth2_tmp*cos(theta3)*(m32 - m12*pow(cos(theta1),2) - m22*pow(sin(theta1),2)) + (m12 - m22)*cos(theta1)*sin(theta1)*sin(theta3));
+    
+    // alpha = atan(1/ta);
    
     return true;
 }
