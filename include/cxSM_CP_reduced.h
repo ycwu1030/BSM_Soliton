@@ -2,6 +2,7 @@
 #define CXSM_CP_REDUCED
 
 #include "cxSM_CP.h"
+#include <iostream>
 
 class cxSM_CP_reduced: public cxSM_CP
 {
@@ -92,6 +93,14 @@ public:
             return;
         }
     }
+    friend std::ostream &operator<<(std::ostream &os, const cxSM_CP_reduced &mod){
+        os << mod._MHL << "\t" << mod._MHH << "\t" << mod._MHA << "\t" << mod._vs;
+        os << "\t" << mod._theta1 << "\t" << mod._theta2 << "\t" << mod._theta3;
+        os << "\t" << mod._mu2 << "\t" << mod._b1 << "\t" << mod._b2;
+        os << "\t" << mod._lam << "\t" << mod._del2 << "\t" << mod._d1;
+        os << "\t" << mod._d2 << "\t" << mod._alpha;
+        return os;
+    };
     // * Inherit from cxSM_CP
     // virtual double Vtotal(VD field_values, double scale = 1);
     // virtual VD dVtotal(VD field_values, double scale = 1);

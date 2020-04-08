@@ -52,7 +52,7 @@ bool DWSolver::Solve(VD &X, VVD &Y)
     _ODE_DOF = 2*_N_Fields;
     _N_Left_Bound = _N_Fields;
     _N_Right_Bound = _N_Fields;
-    _ODESolver.SetDOF(_ODE_DOF,_N_Left_Bound,500);
+    _ODESolver.SetDOF(_ODE_DOF,_N_Left_Bound,463);
     VD left_bound;
     VD right_bound;
     for (size_t i = 0; i < _N_Fields; i++)
@@ -62,19 +62,24 @@ bool DWSolver::Solve(VD &X, VVD &Y)
     }
     for (size_t i = 0; i < _N_Fields; i++)
     {
-        left_bound.push_back(0);
-        right_bound.push_back(0);
+        double slope = (right_bound[i]-left_bound[i])/_x_half_range/2.0;
+        left_bound.push_back(slope);
+        right_bound.push_back(slope);
     }
     _ODESolver.SetBoundary(-_x_half_range,_x_half_range,left_bound,right_bound);
-    _ODESolver.SetMaxIteration(10000);
-    _ODESolver.SetConvergeCriterion(1.0,1e-8);
+    _ODESolver.SetMaxIteration(1000);
+    _ODESolver.SetConvergeCriterion(0.25,1e-9);
     _ODESolver.SetODESystem(DIFEQ_DW,this);
     VD scales(4,1);
     _ODESolver.SetScales(scales);
     bool good = _ODESolver.SOLVDE();
-    if (!good) return good;
+    // if (!good) return good;
     VD X_Solved = _ODESolver.GetX();
     VVD Y_Solved = _ODESolver.GetY();
+    _ODESolver.SetBoundary(X_Solved,Y_Solved);
+    good = _ODESolver.SOLVDE();
+    X_Solved = _ODESolver.GetX();
+    Y_Solved = _ODESolver.GetY();
     _X = X_Solved/_z_scale;
     _Y.clear();
     for (size_t i = 0; i < Y_Solved.size(); i++)
