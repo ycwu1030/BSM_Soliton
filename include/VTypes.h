@@ -33,6 +33,8 @@ VVD operator*(const double &s, const VVD &rhs);
 
 VVD operator/(const VVD &lhs, const double &s);
 
+VVD transpose(const VVD &mat);
+
 bool CloseQ(double x1, double x2);
 
 bool CloseQ(VD x1, VD x2);

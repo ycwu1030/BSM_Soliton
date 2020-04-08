@@ -4,6 +4,7 @@
 #include "Relaxation.h"
 #include "Potential.h"
 #include <string>
+#include <functional>
 
 class DWSolver
 {
@@ -12,6 +13,7 @@ private:
     int _ODE_DOF;
     int _N_Left_Bound;
     int _N_Right_Bound;
+    int _mesh_points;
     VD _X;
     VVD _Y;
 
@@ -22,9 +24,13 @@ private:
     double _x_half_range;
     VD _Left_Bound;
     VD _Right_Bound;
+    VD _Field_Basis;
     void SetDWODE_LeftBoundary(const Relaxation_Param relax_param, VVD &S);
     void SetDWODE_RightBoundary(const Relaxation_Param relax_param, VVD &S);
     void SetDWODE_Body(const Relaxation_Param relax_param, VVD &S);
+    void SetInitial();
+    std::function<VD(VD)> _dV_replace;
+    std::function<VVD(VD)> _d2V_replace;
 
 public:
     DWSolver();

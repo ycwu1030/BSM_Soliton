@@ -139,6 +139,25 @@ VVD operator/(const VVD &lhs, const double &s)
     }
     return res;
 }
+VVD transpose(const VVD &mat)
+{
+    int row_size = mat.size();
+    if (row_size==0)
+    {
+        return VVD(0);
+    }
+    int col_size = mat[0].size();
+    VVD res(col_size,VD(row_size,0));
+    for (int i = 0; i < row_size; i++)
+    {
+        for (int j = 0; j < col_size; j++)
+        {
+            res[j][i] = mat[i][j];
+        }
+    }
+    return res;
+}
+
 
 ostream& operator<<(ostream& out, const VD& s)
 {

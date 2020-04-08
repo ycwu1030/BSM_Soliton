@@ -99,6 +99,8 @@ bool Relaxation::SOLVDE()
         _relax_param.index_column_off = 0;
 
         _difeq(_relax_param,_param,_S);
+        // cout<<"Iter: "<<iter<<"  "<<"S at left:"<<endl;
+        // PrintS();
         _pinvs();
         
         // Intermidate points
@@ -124,6 +126,8 @@ bool Relaxation::SOLVDE()
             _difeq(_relax_param,_param,_S);
             _reduce();
             _pinvs();
+            // cout<<"Iter: "<<iter<<"  C at "<<k<<endl;
+            // PrintC();
         }
 
         // The final boundary condition
@@ -160,7 +164,7 @@ bool Relaxation::SOLVDE()
             for (size_t k = _relax_param.k_init; k <= _relax_param.k_final; k++)
             {
                 vz = abs(_C[k][j][0]);
-                if (vz > vmax)
+                if (isnormal(vz) && vz > vmax)
                 {
                     vmax = vz;
                     km = k;
@@ -173,7 +177,6 @@ bool Relaxation::SOLVDE()
         }
         err /= nvars;
         double fac = (err > _slowc? _slowc/err: 1.0);
-
         for (size_t j = 0; j < _DOF; j++)
         {
             for (size_t k = _relax_param.k_init; k <= _relax_param.k_final; k++)
@@ -186,8 +189,13 @@ bool Relaxation::SOLVDE()
         // cout<<"Var\tKmax\tMax.Error"<<endl;
         // for (size_t id = 0; id < _DOF; id++)
         // {
-        //     cout<<id<<"\t"<<kmax[id]<<"\t"<<ermax[id]<<endl;
+            // cout<<id<<"\t"<<kmax[id]<<"\t"<<ermax[id]<<endl;
         // }
+        if (((iter+1)%100==0))
+        {
+            DumpSolution("steps_caches/profile_step_"+to_string(iter+1)+".dat");
+        }
+        
         if (err < _conv)
         {
             return true;
@@ -410,7 +418,7 @@ void Relaxation::PrintSolution()
 void Relaxation::DumpSolution(string filename)
 {
     ofstream output(filename.c_str());
-    output<<"The Solution is:"<<endl;
+    // output<<"The Solution is:"<<endl;
     output<<"x\t";
     for (size_t i = 0; i < _DOF; i++)
     {
