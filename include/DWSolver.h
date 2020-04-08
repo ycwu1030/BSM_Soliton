@@ -17,7 +17,8 @@ private:
 
     Relaxation _ODESolver;
     Potential *_mod;
-    double _overall_scale;
+    VD _overall_scale;
+    double _z_scale;
     double _x_half_range;
     VD _Left_Bound;
     VD _Right_Bound;
@@ -33,6 +34,7 @@ public:
 
     void SetXRange(double x_range=25);
     void SetOverallScale(double overall_scale);
+    void SetOverallScale(VD overall_scale);
     void SetBoundary(VD Left_Bound, VD Right_Bound);
     void SetDWODE(const Relaxation_Param relax_param, VVD &S);
 

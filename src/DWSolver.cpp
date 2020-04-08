@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <algorithm>
 using namespace std;
 
 void DIFEQ_DW(const Relaxation_Param relax_param, void *param, VVD &S)
@@ -35,9 +36,15 @@ void DWSolver::SetBoundary(VD Left_Bound, VD Right_Bound)
     _Left_Bound = Left_Bound;
     _Right_Bound = Right_Bound;
 }
+void DWSolver::SetOverallScale(VD overall_scale)
+{
+    _overall_scale = abs(overall_scale);
+    _z_scale = *max_element(_overall_scale.begin(),_overall_scale.end());
+}
 void DWSolver::SetOverallScale(double overall_scale)
 {
-    _overall_scale = overall_scale;
+    _overall_scale = VD(_mod->GetFieldDimension(),overall_scale);
+    _z_scale = overall_scale;
 }
 bool DWSolver::Solve(VD &X, VVD &Y)
 {
@@ -50,8 +57,8 @@ bool DWSolver::Solve(VD &X, VVD &Y)
     VD right_bound;
     for (size_t i = 0; i < _N_Fields; i++)
     {
-        left_bound.push_back(_Left_Bound[i]/_overall_scale);
-        right_bound.push_back(_Right_Bound[i]/_overall_scale);
+        left_bound.push_back(_Left_Bound[i]/_overall_scale[i]);
+        right_bound.push_back(_Right_Bound[i]/_overall_scale[i]);
     }
     for (size_t i = 0; i < _N_Fields; i++)
     {
@@ -68,14 +75,14 @@ bool DWSolver::Solve(VD &X, VVD &Y)
     if (!good) return good;
     VD X_Solved = _ODESolver.GetX();
     VVD Y_Solved = _ODESolver.GetY();
-    _X = X_Solved/_overall_scale;
+    _X = X_Solved/_z_scale;
     _Y.clear();
     for (size_t i = 0; i < Y_Solved.size(); i++)
     {
         VD y;
         for (size_t j = 0; j < _N_Fields; j++)
         {
-            y.push_back(Y_Solved[i][j]*_overall_scale);
+            y.push_back(Y_Solved[i][j]*_overall_scale[j]);
         }
         _Y.push_back(y);
     }
@@ -119,7 +126,7 @@ void DWSolver::SetDWODE_LeftBoundary(const Relaxation_Param relax_param, VVD &S)
                 S[i+_N_Right_Bound][j+_ODE_DOF] = 1;
             }
         }
-        S[i+_N_Right_Bound][relax_param.k_coeff] = y1[i] - _Left_Bound[i]/_overall_scale;
+        S[i+_N_Right_Bound][relax_param.k_coeff] = y1[i] - _Left_Bound[i]/_overall_scale[i];
     }
 }
 void DWSolver::SetDWODE_RightBoundary(const Relaxation_Param relax_param, VVD &S)
@@ -134,7 +141,7 @@ void DWSolver::SetDWODE_RightBoundary(const Relaxation_Param relax_param, VVD &S
                 S[i][j+_ODE_DOF] = 1;
             }
         }
-        S[i][relax_param.k_coeff] = y1[i] - _Right_Bound[i]/_overall_scale;
+        S[i][relax_param.k_coeff] = y1[i] - _Right_Bound[i]/_overall_scale[i];
     }
 }
 void DWSolver::SetDWODE_Body(const Relaxation_Param relax_param, VVD &S)
@@ -170,24 +177,24 @@ void DWSolver::SetDWODE_Body(const Relaxation_Param relax_param, VVD &S)
     VD field_aver;
     for (size_t i = 0; i < _N_Fields; i++)
     {
-        field_aver.push_back(y_aver[i]*_overall_scale);
+        field_aver.push_back(y_aver[i]*_overall_scale[i]);
     }
-    VVD HM = _mod->d2Vtotal(field_aver,_overall_scale);
-    VD dV = _mod->dVtotal(field_aver,_overall_scale);
+    VVD HM = _mod->d2Vtotal(field_aver);
+    VD dV = _mod->dVtotal(field_aver);
     
     for (size_t i = 0; i < _N_Fields; i++)
     {
         for (size_t j = 0; j < _N_Fields; j++)
         {
-            S[i+_N_Fields][j] = -dz/2*HM[i][j];
-            S[i+_N_Fields][j+_ODE_DOF] = -dz/2*HM[i][j];
+            S[i+_N_Fields][j] = -dz/2*HM[i][j]/_z_scale/_z_scale/_overall_scale[i]*_overall_scale[j];
+            S[i+_N_Fields][j+_ODE_DOF] = -dz/2*HM[i][j]/_z_scale/_z_scale/_overall_scale[i]*_overall_scale[j];
             if (i == j)
             {
                 S[i+_N_Fields][j+_N_Fields] = -1;
                 S[i+_N_Fields][j+_N_Fields+_ODE_DOF] = 1;
             }
         }
-        S[i+_N_Fields][relax_param.k_coeff] = dy[i+_N_Fields] - dz*dV[i];
+        S[i+_N_Fields][relax_param.k_coeff] = dy[i+_N_Fields] - dz*dV[i]/_z_scale/_z_scale/_overall_scale[i];
     }
 }
 
