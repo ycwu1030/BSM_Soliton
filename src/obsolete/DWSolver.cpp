@@ -14,79 +14,28 @@ void DIFEQ_DW(const Relaxation_Param relax_param, void *param, VVD &S)
 DWSolver::DWSolver()
 {
     _mod = nullptr;
-    _z_range = -1;
-    SetMeshPoints();
-    // SetZRange();
+    SetXRange();
 }
-DWSolver::DWSolver(Potential *mod, int mesh_points)
+DWSolver::DWSolver(Potential *mod)
 {
     _mod = mod;
-    _N_Fields = _mod->GetFieldDimension();
-    _ODE_DOF = 2*_N_Fields;
-    _N_Left_Bound = _N_Fields;
-    _N_Right_Bound = _N_Fields;
-    _mesh_points = mesh_points;
-    _z_range = -1;
-    // SetZRange();
+    SetXRange();
 }
-DWSolver::DWSolver(Potential *mod, VD Left_Bound, VD Right_Bound, int mesh_points)
+DWSolver::DWSolver(Potential *mod, VD Left_Bound, VD Right_Bound)
 {
     _mod = mod;
-    _N_Fields = _mod->GetFieldDimension();
-    _ODE_DOF = 2*_N_Fields;
-    _N_Left_Bound = _N_Fields;
-    _N_Right_Bound = _N_Fields;
-
-    _z_range = -1;
-    SetBoundary(Left_Bound,Right_Bound);
-    SetMeshPoints(mesh_points);
+    _Left_Bound = Left_Bound;
+    _Right_Bound = Right_Bound;
+    SetXRange();
 }
-void DWSolver::SetZRange(double z_range)
+void DWSolver::SetXRange(double x_range)
 {
-    _z_range = z_range;
-    _x_half_range = atan(z_range);
-}
-void DWSolver::SetZRange()
-{
-    double zmax = 0;
-    VD couplings = _mod->QuarticCoupling(_Left_Bound);
-    for (int i = 0; i < _N_Fields; i++)
-    {
-        if (_Left_Bound[i]*_Right_Bound[i]<0)
-        {
-            double zi = 6.0/sqrt(couplings[i]/2);
-            if (zi>zmax)
-            {
-                zmax = zi;
-            }
-        }
-    }
-    _z_range = zmax;
-    _x_half_range = atan(_z_range);
+    _x_half_range = x_range;
 }
 void DWSolver::SetBoundary(VD Left_Bound, VD Right_Bound)
 {
     _Left_Bound = Left_Bound;
     _Right_Bound = Right_Bound;
-    SetZRange();
-    VD scales;
-    for (int i = 0; i < _N_Fields; i++)
-    {
-        if (_Left_Bound[i]*_Right_Bound[i]<0)
-        {
-            scales.push_back(max(abs(_Left_Bound[i]),abs(_Right_Bound[i])));
-        }
-        else
-        {
-            double center = (_Left_Bound[i] + _Right_Bound[i])/2;
-            double left_left = _Left_Bound[i] - center;
-            double right_left = _Right_Bound[i] - center;
-            double scale = max(abs(left_left),abs(right_left));
-            scale = scale<1?1:scale;
-            scales.push_back(scale);
-        }
-    }
-    SetOverallScale(scales);
 }
 void DWSolver::SetOverallScale(VD overall_scale)
 {
@@ -102,11 +51,10 @@ void DWSolver::SetInitial()
 {
     VD X_init;
     VVD Y_init(_ODE_DOF);
-    double z_max = tan(_x_half_range);
-    double dz = 2*z_max/(_mesh_points-1);
+    double dx = 2*_x_half_range/(_mesh_points-1);
     for (int i = 0; i < _mesh_points; i++)
     {
-        X_init.push_back(atan(-z_max+i*dz));
+        X_init.push_back(-_x_half_range+i*dx);
     }
     X_init[0] = -_x_half_range;
     X_init.back() = _x_half_range;
@@ -123,13 +71,13 @@ void DWSolver::SetInitial()
         double right_left = _Right_Bound[i] - f_aver;
         if (_Left_Bound[i]*_Right_Bound[i]>0)
         {
-            f = [&](double x){double r = tan(_x_half_range)/5.0; return left_left/_overall_scale[i] + (right_left - left_left)/_overall_scale[i]/(2*_x_half_range)*(x+_x_half_range) + 1/pow(cosh(tan(x)/r),2);};
-            df = [&](double x){double r = tan(_x_half_range)/5.0; return (right_left - left_left)/_overall_scale[i]/(2*_x_half_range) - 2*tanh(tan(x)/r)/r/pow(cosh(tan(x)/r),2);};
+            f = [&](double x){double r = _x_half_range/5.0; return left_left/_overall_scale[i] + (right_left - left_left)/_overall_scale[i]/(2*_x_half_range)*(x+_x_half_range) + 1/pow(cosh(x/r),2);};
+            df = [&](double x){double r = _x_half_range/5.0; return (right_left - left_left)/_overall_scale[i]/(2*_x_half_range) - 2*tanh(x/r)/r/pow(cosh(x/r),2);};
         }
         else
         {
-            f = [&](double x){double r = tan(_x_half_range)/5.0; return -left_left/_overall_scale[i]*tanh(tan(x)/r);};
-            df = [&](double x){double r = tan(_x_half_range)/5.0; return -left_left/_overall_scale[i]/pow(cosh(tan(x)/r),2);};
+            f = [&](double x){double r = _x_half_range/5.0; return -left_left/_overall_scale[i]*tanh(x/r);};
+            df = [&](double x){double r = _x_half_range/5.0; return -left_left/_overall_scale[i]/pow(cosh(x/r),2);};
         }
         // f = [&](double x){double r = _x_half_range/5.0; return left_left/_overall_scale[i] + (right_left - left_left)/_overall_scale[i]/(2*_x_half_range)*(x+_x_half_range);};
         // df = [&](double x){double r = _x_half_range/5.0; return (right_left - left_left)/_overall_scale[i]/(2*_x_half_range);};
@@ -162,7 +110,7 @@ void DWSolver::SetInitial()
     _ODESolver.SetBoundary(X_init,Y_init);
     _X = X_init;
     _Y = Y_init;
-    // DumpSolution("Initial_Guess.dat");
+    DumpSolution("Initial_Guess.dat");
     _dV_replace = [&](VD y_aver){
         VD field;
         for (int i = 0; i < _N_Fields; i++)
@@ -182,9 +130,28 @@ void DWSolver::SetInitial()
 }
 bool DWSolver::Solve(VD &X, VVD &Y)
 {
+    _N_Fields = _mod->GetFieldDimension();
+    _ODE_DOF = 2*_N_Fields;
+    _N_Left_Bound = _N_Fields;
+    _N_Right_Bound = _N_Fields;
+    _mesh_points = 463;
     _ODESolver.SetDOF(_ODE_DOF,_N_Left_Bound,_mesh_points);
     
     SetInitial();
+    // VD left_bound;
+    // VD right_bound;
+    // for (size_t i = 0; i < _N_Fields; i++)
+    // {
+    //     left_bound.push_back(_Left_Bound[i]/_overall_scale[i]);
+    //     right_bound.push_back(_Right_Bound[i]/_overall_scale[i]);
+    // }
+    // for (size_t i = 0; i < _N_Fields; i++)
+    // {
+    //     double slope = (right_bound[i]-left_bound[i])/_x_half_range/2.0;
+    //     left_bound.push_back(slope);
+    //     right_bound.push_back(slope);
+    // }
+    // _ODESolver.SetBoundary(-_x_half_range,_x_half_range,left_bound,right_bound);
     _ODESolver.SetMaxIteration(10000);
     _ODESolver.SetConvergeCriterion(0.5,1e-8);
     _ODESolver.SetODESystem(DIFEQ_DW,this);
@@ -198,8 +165,7 @@ bool DWSolver::Solve(VD &X, VVD &Y)
     // good = _ODESolver.SOLVDE();
     // X_Solved = _ODESolver.GetX();
     // Y_Solved = _ODESolver.GetY();
-    // _X = X_Solved/_z_scale;
-    _X.clear();
+    _X = X_Solved/_z_scale;
     _Y.clear();
     for (size_t i = 0; i < Y_Solved.size(); i++)
     {
@@ -208,7 +174,6 @@ bool DWSolver::Solve(VD &X, VVD &Y)
         {
             y.push_back(_Field_Basis[j]+Y_Solved[i][j]*_overall_scale[j]);
         }
-        _X.push_back(tan(X_Solved[i])/_z_scale);
         _Y.push_back(y);
     }
     X = _X;
@@ -278,9 +243,6 @@ void DWSolver::SetDWODE_Body(const Relaxation_Param relax_param, VVD &S)
     VD y2 = relax_param.y2;
     double dz = x2-x1;
     double z_aver = (x1+x2)/2.0;
-    double sz = sin(z_aver);
-    double cz3 = pow(cos(z_aver),3);
-    double cz4 = pow(cos(z_aver),4);
     VD y_aver = (y1+y2)/2.0;
     VD dy = y2 - y1;
 
@@ -320,11 +282,11 @@ void DWSolver::SetDWODE_Body(const Relaxation_Param relax_param, VVD &S)
             S[i+_N_Fields][j+_ODE_DOF] = -dz/2*HM[i][j]/_z_scale/_z_scale/_overall_scale[i]*_overall_scale[j];
             if (i == j)
             {
-                S[i+_N_Fields][j+_N_Fields] = -cz4 - dz*sz*cz3;
-                S[i+_N_Fields][j+_N_Fields+_ODE_DOF] = cz4 - dz*sz*cz3;
+                S[i+_N_Fields][j+_N_Fields] = -1;
+                S[i+_N_Fields][j+_N_Fields+_ODE_DOF] = 1;
             }
         }
-        S[i+_N_Fields][relax_param.k_coeff] = cz4*dy[i+_N_Fields] - 2*dz*sz*cz3*y_aver[i+_N_Fields] - dz*dV[i]/_z_scale/_z_scale/_overall_scale[i];
+        S[i+_N_Fields][relax_param.k_coeff] = dy[i+_N_Fields] - dz*dV[i]/_z_scale/_z_scale/_overall_scale[i];
     }
 }
 

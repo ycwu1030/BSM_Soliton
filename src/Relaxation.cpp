@@ -191,10 +191,10 @@ bool Relaxation::SOLVDE()
         // {
             // cout<<id<<"\t"<<kmax[id]<<"\t"<<ermax[id]<<endl;
         // }
-        if (((iter+1)%100==0))
-        {
-            DumpSolution("steps_caches/profile_step_"+to_string(iter+1)+".dat");
-        }
+        // if (((iter+1)%100==0))
+        // {
+        //     DumpSolution("steps_caches/profile_step_"+to_string(iter+1)+".dat");
+        // }
         
         if (err < _conv)
         {

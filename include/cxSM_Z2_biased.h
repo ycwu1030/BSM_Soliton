@@ -37,6 +37,7 @@ public:
     virtual VD dVtotal(VD field_values, double scale = 1);
     virtual VVD d2Vtotal(VD field_values, double scale = 1);
     virtual double V0_global(double scale = 1);
+    virtual VD QuarticCoupling(VD field_values);
 
     virtual void FindLocalMinima(); 
     // virtual bool CheckStability();

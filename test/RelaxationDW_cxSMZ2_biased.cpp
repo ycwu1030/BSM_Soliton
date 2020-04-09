@@ -14,7 +14,7 @@ int main(int argc, char const *argv[])
     bool good;
     // model.SetInput(157.633,42.647,0.335465);
     // model.Set_Physical_Parameters(157.633,0.335465,42.647);
-    model.Set_Physical_Parameters_a1_c1_c2(500,0.1,400,0,0,0,0);
+    model.Set_Physical_Parameters_a1_c1_c2(500,0.1,400,10,0,0,0);
     model.PrintLocalMinima();
     if (!model.CheckStability()||!model.CheckUnitarity()||!model.CheckGlobalMinimum())
     {
@@ -31,8 +31,7 @@ int main(int argc, char const *argv[])
     right[0] = model.GetVEV();
     right[1] = 500;
     solver.SetBoundary(left,right);
-    solver.SetOverallScale(model.GetVEV());
-    solver.SetXRange();
+    // solver.SetZRange(25);
     VD X;
     VVD Y;
     good = solver.Solve(X,Y);

@@ -17,16 +17,12 @@ int main(int argc, char const *argv[])
     VD left = {model.GetVEV(),-15.};
     VD right = {model.GetVEV(),15.};
     DWSolver solver(&model,left,right);
-    solver.SetOverallScale(model.GetVEV());
-    solver.SetXRange(50);
     VD X;
     VVD Y;
     bool good = solver.Solve(X,Y);
-    // solver.PrintSolution();
     solver.DumpSolution("cxSMZ2_DW_sol.dat");
     cout<<"Energy: "<<model.GetTotalEnergy(X,Y)<<endl;
     cout<<"Tension: "<<model.GetTension(X,Y)<<endl;
-    // RX.DumpSolution("Relaxation_DW_test.dat");
     return 0;
 }
 

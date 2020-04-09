@@ -159,6 +159,10 @@ double cxSM_Z2_biased::Vtotal(VD field_values, double scale)
     double vtot = sqrt(2)*_a1*vs + _b2*vs2/4 + (_c1 + _c2)/6/sqrt(2)*vs2*vs + _d2*vs2*vs2/16 + _del1/4/sqrt(2)*vh2*vs + _lam*vh2*vh2/4 + _mu2*vh2/2 + _del2*vh2*vs2/8;
     return vtot/pow(scale,4);
 }
+VD cxSM_Z2_biased::QuarticCoupling(VD field_values)
+{
+    return {_lam, _d2/4.0};
+}
 VD cxSM_Z2_biased::dVtotal(VD field_values, double scale)
 {
     double vh  = field_values[0];

@@ -28,14 +28,14 @@ int main(int argc, char const *argv[])
     model.GetVS(vsr,vsi);
     VD left = {model.GetVEV(),vsr,-vsi};
     VD right = {model.GetVEV(),vsr,vsi};
-    solver.SetOverallScale({model.GetVEV(),1,vsi});
-    solver.SetXRange(50);
     solver.SetBoundary(left,right);
+    solver.SetOverallScale({model.GetVEV(),1,vsi});
     VD X;
     VVD Y;
     good = solver.Solve(X,Y);
     // solver.PrintSolution();
-    solver.DumpSolution("cxSMCP_reduced_DW_sol_50.dat");
+    solver.DumpSolution("cxSMCP_reduced_DW_sol.dat");
+    model.DumpEnergyDensity(X,Y,"cxSMCP_reduced_Density.dat");
     cout<<"Energy: "<<model.GetTotalEnergy(X,Y)<<endl;
     cout<<"Tension: "<<model.GetTension(X,Y)<<endl;
     // RX.DumpSolution("Relaxation_DW_test.dat");

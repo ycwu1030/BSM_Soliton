@@ -12,7 +12,7 @@ int main(int argc, char const *argv[])
 {
     cxSM_Z2_biased model;
     DWSolver solver(&model);
-    solver.SetOverallScale(model.GetVEV());
+    // solver.SetOverallScale(model.GetVEV());
     VD left(2);
     VD right(2);
     double vs;

@@ -102,6 +102,10 @@ double cxSM_Z2::Vtotal(VD field_values, double scale)
     double vtot = _mu2*vh2/2 + _b2*vs2/4 + _lam*vh2*vh2/4 + _d2*vs2*vs2/16 + _del2*vh2*vs2/8;
     return vtot/pow(scale,4);
 }
+VD cxSM_Z2::QuarticCoupling(VD field_values)
+{
+    return {_lam, _d2/4.0};
+}
 VD cxSM_Z2::dVtotal(VD field_values, double scale)
 {
     double vh  = field_values[0];

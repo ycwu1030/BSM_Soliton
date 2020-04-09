@@ -12,7 +12,7 @@ int main(int argc, char const *argv[])
 {
     cxSM_CP_reduced model;
     DWSolver solver(&model);
-    solver.SetOverallScale(model.GetVEV());
+    // solver.SetOverallScale(model.GetVEV());
     VD left(3); // For CP case, the DOF is 3
     VD right(3);
     double vs;

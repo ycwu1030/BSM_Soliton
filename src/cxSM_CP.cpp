@@ -365,6 +365,10 @@ double cxSM_CP::Vtotal(VD field_values, double scale)
 
     return (-_b1*vsi2/4+_b1*vsr2/4+_b2*vsi2/4+_b2*vsr2/4+_d1*vsi2*vsi2/16-3*_d1*vsi2*vsr2/8+_d1*vsr2*vsr2/16+_d2*vsi2*vsi2/16+_d2*vsi2*vsr2/8+_d2*vsr2*vsr2/16-_d3*vsi2*vsi2/16+_d3*vsr2*vsr2/16+_lam*vh2*vh2/4+_mu2*vh2/2+_del2*vh2*vsi2/8-_del3*vh2*vsi2/8+_del2*vh2*vsr2/8+_del3*vh2*vsr2/8)/pow(scale,4);
 }
+VD cxSM_CP::QuarticCoupling(VD field_values)
+{
+    return {_lam, (_d1+_d2+_d3)/4.0,(_d1+_d2-_d3)/4.0};
+}
 VD cxSM_CP::dVtotal(VD field_values, double scale)
 {
     double vh = field_values[0];

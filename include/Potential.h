@@ -1,6 +1,7 @@
 #ifndef POTENTIAL_H
 #define POTENTIAL_H
 #include "VTypes.h"
+#include <string>
 
 class Potential
 {
@@ -18,13 +19,15 @@ public:
     virtual double V0_global(double scale = 1) {return 0;}
     virtual VD dVtotal(VD field_values, double scale = 1) {return VD(1,0);}
     virtual VVD d2Vtotal(VD field_values, double scale = 1) {return VVD(1,VD(1,0));}
+    virtual VD QuarticCoupling(VD field_values){return VD(1,0);};
 
     int GetFieldDimension(){return _Field_Dim;}
 
     bool CheckHessian(VD field_values);
 
     double GetTotalEnergy(VD x, VVD fields);
-    double GetTension(VD x, VVD fields); 
+    double GetTension(VD x, VVD fields);
+    void DumpEnergyDensity(VD x, VVD fields, std::string filename);
 
 };
 
