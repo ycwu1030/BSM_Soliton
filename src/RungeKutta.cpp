@@ -20,11 +20,13 @@ RungeKutta::RungeKutta()
 {
     SetDOF();
     _derivs = nullptr;
+    _param = nullptr;
 }
 RungeKutta::RungeKutta(int DOF)
 {
     SetDOF(DOF);
     _derivs = nullptr;
+    _param = nullptr;
 }
 void RungeKutta::SetDOF(int DOF)
 {
@@ -39,6 +41,10 @@ void RungeKutta::SetBound(double x_begin, double x_end, VD BOUND)
 void RungeKutta::SetODE(F_ODE derivs)
 {
     _derivs = derivs;
+}
+void RungeKutta::SetParams(void *param)
+{
+    _param = param;
 }
 void RungeKutta::_RESET()
 {
@@ -56,13 +62,13 @@ void RungeKutta::_RK4_SingleStep(double X_CUR, VD Y_CUR, VD dY_CUR, double step_
     VD dY_Step1 = step_size*dY_CUR;
 
 // The second step, half_step in x, half dY_Step1 in Y
-    VD dY_Step2 = step_size*_derivs(X_CUR+half_step,Y_CUR+dY_Step1/2);
+    VD dY_Step2 = step_size*_derivs(X_CUR+half_step,Y_CUR+dY_Step1/2,_param);
 
 // The third step, half_step in x, half dY_Step2 in Y
-    VD dY_Step3 = step_size*_derivs(X_CUR+half_step,Y_CUR+dY_Step2/2);
+    VD dY_Step3 = step_size*_derivs(X_CUR+half_step,Y_CUR+dY_Step2/2,_param);
 
 // The fourth step, full step in x, full dY_Step3 in Y
-    VD dY_Step4 = step_size*_derivs(X_CUR+step_size,Y_CUR+dY_Step3);
+    VD dY_Step4 = step_size*_derivs(X_CUR+step_size,Y_CUR+dY_Step3,_param);
     
     Y_NEXT = Y_CUR + dY_Step1/6 + dY_Step2/3 + dY_Step3/3 + dY_Step4/6;
 }
@@ -90,7 +96,7 @@ void RungeKutta::_RKQC_SingleStep(double &X, VD &Y, VD dY, double step_size_gues
         half_step_size = step_size/2.0;
         _RK4_SingleStep(x_cache,y_cache,dy_cache,half_step_size,y_temp);
         X = x_cache + half_step_size;
-        dY = _derivs(X,y_temp);
+        dY = _derivs(X,y_temp,_param);
         _RK4_SingleStep(X,y_temp,dY,half_step_size,Y);
 
         // Take one large step
@@ -126,7 +132,7 @@ void RungeKutta::ODEINTEGRAL(double step_start,double eps)
     _RESET();
     double x = _X[0];
     VD y = _Y[0];
-    VD dydx = _derivs(x,y);
+    VD dydx = _derivs(x,y,_param);
     _dYdX.push_back(dydx);
     double step_size = (_x_end > _x_begin)? abs(step_start):-abs(step_start);
     double step_size_did;
@@ -146,7 +152,7 @@ void RungeKutta::ODEINTEGRAL(double step_start,double eps)
         _RKQC_SingleStep(x,y,dydx,step_size,eps,_Y_SCALE,step_size_did,step_size_next);
         _X.push_back(x);
         _Y.push_back(y);
-        dydx=_derivs(x,y);
+        dydx=_derivs(x,y,_param);
         _dYdX.push_back(dydx);
         if ((x - _x_end)*(_x_end-_x_begin)>=0)
         {

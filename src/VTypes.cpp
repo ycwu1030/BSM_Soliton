@@ -48,6 +48,28 @@ vector<double> operator-(const vector<double> &lhs, const vector<double> &rhs){
     }
     return res;
 }
+VD operator-(const VD &lhs, const double &rhs)
+{
+    VD res;
+    for (size_t i = 0; i < lhs.size(); i++)
+    {
+        res.push_back(lhs[i]-rhs);
+    }
+    return res;
+}
+VD operator-(const double &lhs, const VD &rhs)
+{
+    VD res;
+    for (size_t i = 0; i < rhs.size(); i++)
+    {
+        res.push_back(lhs-rhs[i]);
+    }
+    return res;
+}
+VD operator-(const VD &rhs)
+{
+    return 0-rhs;
+}
 
 
 vector<double> operator*(const vector<double> &lhs, const double &s)

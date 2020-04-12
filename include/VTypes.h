@@ -3,12 +3,15 @@
 #include <cmath>
 #include <vector>
 #include <iostream>
+#include <functional>
 
 typedef std::vector<bool> VB;
 typedef std::vector<int> VI;
 typedef std::vector<double> VD;
 typedef std::vector<std::vector<double> > VVD;
 typedef std::vector<std::vector<std::vector<double> > > VVVD;
+
+typedef std::function<double(double)> V1D;
 
 VD abs(const VD &input);
 
@@ -18,6 +21,9 @@ VD operator+(const double &cons, const VD &rhs);
 VD operator+(const VD &lhs, const VD &rhs);
 
 VD operator-(const VD &lhs, const VD &rhs);
+VD operator-(const VD &lhs, const double &rhs);
+VD operator-(const double &lhs, const VD &rhs);
+VD operator-(const VD &rhs);
 
 VD operator*(const VD &lhs, const double &s);
 VD operator*(const double &s, const VD &rhs);

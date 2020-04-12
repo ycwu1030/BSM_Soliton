@@ -7,7 +7,7 @@
 #include "VTypes.h"
 #include <string>
 
-typedef VD (*F_ODE)(double x, VD y);
+typedef VD (*F_ODE)(double x, VD y, void *param);
 
 class RungeKutta
 {
@@ -20,10 +20,11 @@ private:
     VD _BOUND_CONDITION;  // The boundary condition at the starting point
     VD _Y_SCALE; // The scale 
     F_ODE _derivs; // The ODE functions, arguments are the position and the Y values 
+    void *_param;
 
     void _RESET(); // Whenever we change the DOF, boundary condition or the ODE function, we need to reset X,Y,dYdX and be prepared for re-do the RK iteration;
     void _RK4_SingleStep(double X_CUR, VD Y_CUR, VD dY_CUR, double step_size, VD &dY_NEXT); // This is the usual 4th-order Runge-Kutta method, take one step forward.
-    void _RKQC_SingleStep(double &X, VD &Y, VD dY, double step_size_guess, double eps, VD Y_Scale, double &step_size_did, double &step_size_further); // This is the Runge-Kutta method with quality controlled, which will achieve 5-th order accuracy. (adaptive stepsize)
+    
 
 // Following are used for two-point boundary problem
     std::vector<bool> _BOUND_begin_Q;
@@ -46,6 +47,9 @@ public:
     void SetBound(double x_begin, double x_end, VD BOUND); // This is used for usual ODE problem where the boundary conditions are given only at x_begin;
     void SetBound(double x_begin, double x_end, VD BOUND_begin, VD BOUND_end, std::vector<bool> At_Begin_Q, std::vector<bool> At_End_Q);
     void SetODE(F_ODE derivs);
+    void SetParams(void *param);
+
+    void _RKQC_SingleStep(double &X, VD &Y, VD dY, double step_size_guess, double eps, VD Y_Scale, double &step_size_did, double &step_size_further); // This is the Runge-Kutta method with quality controlled, which will achieve 5-th order accuracy. (adaptive stepsize)
 
     void ODEINTEGRAL(double step_start, double eps=1e-6);
 
