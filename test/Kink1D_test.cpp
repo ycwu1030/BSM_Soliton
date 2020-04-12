@@ -39,13 +39,14 @@ double d2pot_bias(double phi)
 }
 int main(int argc, char const *argv[])
 {
-    Kink1D sol(vevleft,vevright,pot_bias,dpot_bias,d2pot_bias,1e-8);
+    // Kink1D sol(vevleft,vevright,pot_bias,dpot_bias,d2pot_bias,1e-8,true);
+    Kink1D sol(vev,-vev,pot_z2,dpot_z2,d2pot_z2,1e-8,false);
     VD R;
     VD phi;
     VD dphi;
     VD Rerr;
     tie(R,phi,dphi,Rerr)=sol.findProfile();
-    ofstream output("Kink1D_biased_test.dat");
+    ofstream output("Kink1D_z2_test.dat");
     output<<"r\tphi\tdphi"<<endl;
     for (int i = 0; i < R.size(); i++)
     {

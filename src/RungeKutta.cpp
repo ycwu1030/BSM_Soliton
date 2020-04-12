@@ -172,7 +172,19 @@ void RungeKutta::ODEINTEGRAL(double step_start,double eps)
     }
     cout<<"TAKE TOO MANY STEPS"<<endl;
 }
-
+VVD RungeKutta::ODEINTEGRAL(VD X, VD Y0, double step_start, double eps)
+{
+    _RESET();
+    VVD Y_res(X.size());
+    Y_res[0] = Y0;
+    for (int i = 1; i < X.size(); i++)
+    {
+        SetBound(X[i-1],X[i],Y_res[i-1]);
+        ODEINTEGRAL(abs(step_start*(X[i]-X[i-1])),eps);
+        Y_res[i] = _Y.back();
+    }
+    return Y_res;
+}
 void RungeKutta::PrintSolution()
 {
     cout<<"The Solution is:"<<endl;

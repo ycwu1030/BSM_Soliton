@@ -1,6 +1,7 @@
 #include "Kink1D.h"
 #include "GSL_Wraper.h"
 #include <cmath>
+#include <iostream>
 #include <iomanip>
 
 using namespace std;
@@ -10,7 +11,7 @@ VD func_for_rkqc(double x, VD y, void *param)
     Kink1D *mod = (Kink1D*)param;
     return mod->equationOfMotion(x,y);
 }
-Kink1D::Kink1D(double phi_left_, double phi_right_, V1D V_, V1D dV_, V1D d2V_, double phi_eps_rel_)
+Kink1D::Kink1D(double phi_left_, double phi_right_, V1D V_, V1D dV_, V1D d2V_, double phi_eps_rel_, bool scaled_)
 {
     V = V_;
     dV = dV_;
@@ -22,6 +23,7 @@ Kink1D::Kink1D(double phi_left_, double phi_right_, V1D V_, V1D dV_, V1D d2V_, d
 
     phi_left = phi_left_;
     phi_right = phi_right_;
+    scaled = scaled_;
     findBarrierLocation();
 
     findScales();
@@ -33,7 +35,7 @@ VD Kink1D::equationOfMotion(double z, VD Y)
 {
     VD res(2);
     res[0] = Y[1];
-    res[1] = dV(Y[0]);
+    res[1] = scaled?dV_scaled(Y[0])/phiscale*zscale*zscale:dV(Y[0]);
     return res;
 }
 double func_for_findBarrierTop(double x, void *params)
@@ -117,9 +119,21 @@ void Kink1D::findScales()
     // * x(t) = xtop*tanh(sqrt(2*Vtop)/xtop*t)
     zscale = abs(xtop)/sqrt(abs(2*Vtop));
     phiscale = abs(phi_abs);
+
+    V_scaled = [&](double field_hat){
+        return V(field_hat*phiscale);
+    };
+    dV_scaled = [&](double field_hat){
+        return dV(field_hat*phiscale);
+    };
+    d2V_scaled = [&](double field_hat){
+        return d2V(field_hat*phiscale);
+    };
+    phi_abs_scaled = phi_abs/phiscale;
+    phi_meta_scaled = phi_meta/phiscale;
+    phi_bar_scaled = phi_bar/phiscale;
+    phi_bar_top_scaled = phi_bar_top/phiscale;
 }
-
-
 struct cubic_param
 {
     double y0;
@@ -142,7 +156,19 @@ tuple<double, VD, CONVERGENCETYPE> Kink1D::integrateProfile(VD y0, VD y_desired,
 {
     VD y_final_desired_value = y_desired;
     double phi_final = y_desired[0];
-    VD y_tol_scale = {abs(phi_final-phi_bar_top), abs(phi_final-phi_bar_top)/zscale};
+    VD y_tol_scale(2);// = {abs(phi_final-phi_bar_top), abs(phi_final-phi_bar_top)/zscale};
+    if (scaled)
+    {
+        y_tol_scale[0] = abs(phi_final-phi_bar_top_scaled);
+        y_tol_scale[1] = y_tol_scale[0];
+    }
+    else
+    {
+        y_tol_scale[0] = abs(phi_final-phi_bar_top);
+        y_tol_scale[1] = abs(phi_final-phi_bar_top)/zscale;
+    }
+    
+    
     // cout<<"desired: "<<y_desired<<endl;
     // cout<<"y-tol-scale: "<<y_tol_scale<<endl;
     VD y_diff;
@@ -162,11 +188,13 @@ tuple<double, VD, CONVERGENCETYPE> Kink1D::integrateProfile(VD y0, VD y_desired,
 
     cubic_param inter_param;
     double x;
+    // int steps = 0;
     // cout<<"Desired: "<<y_final_desired_value<<endl;
-    // cout<<r<<"\t"<<y<<endl;
+    // cout<<steps<<"\t"<<r<<"\t"<<y<<endl;
     while (true)
     {
         // y_scale = {abs(phi_final-phi_bar_top),abs(phi_final-phi_bar_top)/zscale};
+        // steps++;
         y_scale = abs(y) + abs(dydr*dr_guess);
         r_cache = r;
         y_cache = y;
@@ -175,21 +203,24 @@ tuple<double, VD, CONVERGENCETYPE> Kink1D::integrateProfile(VD y0, VD y_desired,
         _rk_calculator._RKQC_SingleStep(r_cache,y_cache,dydr_cache,dr_guess,phi_eps_rel_,y_scale,dr_did,dr_next);
         dydr_cache = equationOfMotion(r_cache,y_cache);
 
-        // cout<<r_cache<<"\t"<<y_cache<<endl;
+        // cout<<"Step-"<<steps<<endl;
+        // cout<<"\t"<<r_cache<<"\t"<<y_cache<<endl;
         y_diff = abs(y_cache - y_final_desired_value);
 
         if (r_cache > rmax)
         {
-            convergQ = TOLARGEZ;
+            convergQ = TOOLARGEZ;
             break;
         }
         
         if (dr_did < drmin)
         {
-            convergQ = TOSMALLSTEP;
+            convergQ = TOOSMALLSTEP;
             break;
         }
         
+        // cout<<"\t"<<y_diff<<endl;
+        // cout<<"\t"<<y_tol_scale<<"\t"<<phi_eps_rel_<<endl;
         if (y_diff[0] < y_tol_scale[0]*phi_eps_rel_ && y_diff[1] < y_tol_scale[1]*phi_eps_rel_)
         {
             // cout<<"desired: "<<y_desired<<endl;
@@ -307,17 +338,24 @@ tuple<VD, VD, VD, double> Kink1D::integrateAndSaveProfile(VD R, VD y0, double dr
 tuple<VD,VD,VD,VD> Kink1D::findProfile(double dphi0_tol_rel, double phi_tol_rel, int npoints, double rmax)
 {
     double dphi0_initial_guess = sqrt(2*abs(V(phi_bar_top)-V(phi_abs)));
+    if (scaled)
+    {
+        dphi0_initial_guess = dphi0_initial_guess*zscale/phiscale;
+    }
     dphi0_initial_guess = phi_bar_top<phi_abs?dphi0_initial_guess:-dphi0_initial_guess;
     // double dphi0_tol_rel = dphi0_tol_rel;// * dphi0_initial_guess;
     double dphi0_min_rel = 0.9;//*dphi0_initial_guess;
     double dphi0_max_rel = 1.1;//*dphi0_initial_guess;
 
-    double dr0 = 5.0*zscale/npoints;
+    double dr0 = scaled?5.0/npoints:5.0*zscale/npoints;
     double drmin = dr0*1e-2;
-    rmax *= zscale;
+    if (!scaled)
+    {
+        rmax *= zscale;
+    }
 
     double rf_abs = NAN;
-    double phi0 = phi_bar_top;
+    double phi0 = scaled?phi_bar_top_scaled:phi_bar_top;
     double dphi0_rel = (dphi0_min_rel+dphi0_max_rel)/2.0;
     double dphi0 = dphi0_rel*dphi0_initial_guess;
     VD y0_abs,y0_meta;
@@ -327,6 +365,10 @@ tuple<VD,VD,VD,VD> Kink1D::findProfile(double dphi0_tol_rel, double phi_tol_rel,
 
     // * Shooting to reach absolute minimum
     y_desired = {phi_abs, 0};
+    if (scaled)
+    {
+        y_desired = y_desired/phiscale;
+    }
     while (true)
     {
         y0_abs = {phi0, dphi0};
@@ -365,12 +407,18 @@ tuple<VD,VD,VD,VD> Kink1D::findProfile(double dphi0_tol_rel, double phi_tol_rel,
     double rf_meta = NAN;
     y_desired = {phi_meta, 0};
     y0_meta = {phi_bar_top, -dphi0_solution};
+    if (scaled)
+    {
+        y_desired[0] = y_desired[0]/phiscale;
+        y0_meta[0] = y0_meta[0]/phiscale;
+    }
+    
     tie(rf_meta,yf,ctype)=integrateProfile(y0_meta,y_desired,dr0,phi_tol_rel,drmin,rmax);
 
-    // if (ctype == UNDERSHOOT)
-    // {
-    //     cout<<"In findProfile: converge in absolute minimum side but undershoot in meta-stable side. Something wrong in the potential!"<<endl;
-    // }
+    if (ctype == UNDERSHOOT)
+    {
+        cout<<"In findProfile: converge in absolute minimum side but undershoot in meta-stable side. Something wrong in the potential!"<<endl;
+    }
     
     // * Save the profile from phi_bar_top to phi_abs;
     VD R_abs(npoints);
@@ -382,6 +430,10 @@ tuple<VD,VD,VD,VD> Kink1D::findProfile(double dphi0_tol_rel, double phi_tol_rel,
     VD dphi_abs;
     double Rerr_abs;
     y0_abs = {phi_bar_top,dphi0_solution};
+    if (scaled)
+    {
+        y0_abs[0] = y0_abs[0]/phiscale;
+    }
     tie(R_abs,phi_abs,dphi_abs,Rerr_abs) = integrateAndSaveProfile(R_abs,y0_abs,dr0,phi_tol_rel,drmin);
 
     VD R_meta(npoints);
@@ -393,6 +445,10 @@ tuple<VD,VD,VD,VD> Kink1D::findProfile(double dphi0_tol_rel, double phi_tol_rel,
     VD dphi_meta;
     double Rerr_meta;
     y0_meta = {phi_bar_top,-dphi0_solution};
+    if (scaled)
+    {
+        y0_meta[0] = y0_meta[0]/phiscale;
+    }
     tie(R_meta,phi_meta,dphi_meta,Rerr_meta) = integrateAndSaveProfile(R_meta,y0_meta,dr0,phi_tol_rel,drmin);
     
     // * Combine the two side
@@ -437,5 +493,27 @@ tuple<VD,VD,VD,VD> Kink1D::findProfile(double dphi0_tol_rel, double phi_tol_rel,
         Rerr_final.insert(Rerr_final.begin(),-Rerr_abs);
     }
     
+    if (scaled)
+    {
+        R_final = R_final*zscale;
+        phi_final = phi_final*phiscale;
+        dphi_final = dphi_final*phiscale;
+        Rerr_final = Rerr_final*zscale;
+    }
+    
     return make_tuple(R_final,phi_final,dphi_final,Rerr_final);
+}
+tuple<VD, VD> Kink1D::evenlySpacedPhi(VD phi, VD dphi, int npoint, int k)
+{
+    VVD fullPhi = transpose({phi,dphi});
+    sort(fullPhi.begin(),fullPhi.end(),[](VD x1, VD x2){return x1[0]<x2[0];});
+    VVD::iterator iter = unique(fullPhi.begin(),fullPhi.end(),[](VD x1, VD x2){return x1[0]==x2[0];});
+    fullPhi.resize(distance(fullPhi.begin(),iter));
+    fullPhi=transpose(fullPhi);
+
+    GSL_Spline_Inter inter;
+    inter.SetData(&fullPhi[1],&fullPhi[0]);
+    VD p = linspace(phi.front(),phi.back(),npoint);
+
+    return make_tuple(p,inter.valAt(p));
 }
