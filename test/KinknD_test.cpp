@@ -10,7 +10,7 @@ using namespace std;
 #define lams (0.4)
 #define lamhs (0.25)
 #define vh (246.221)
-#define vs (10000.0)
+#define vs (1000.0)
 
 double Potential(VD X, double scale)
 {

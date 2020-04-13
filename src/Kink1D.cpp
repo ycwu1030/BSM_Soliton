@@ -505,6 +505,10 @@ tuple<VD,VD,VD,VD> Kink1D::findProfile(double dphi0_tol_rel, double phi_tol_rel,
 }
 tuple<VD, VD> Kink1D::evenlySpacedPhi(VD phi, VD dphi, int npoint, int k)
 {
+    // phi.insert(phi.begin(),phi_left);
+    // phi.insert(phi.end(),phi_right);
+    // dphi.insert(dphi.begin(),0.0);
+    // dphi.insert(dphi.end(),0.0);
     VVD fullPhi = transpose({phi,dphi});
     sort(fullPhi.begin(),fullPhi.end(),[](VD x1, VD x2){return x1[0]<x2[0];});
     VVD::iterator iter = unique(fullPhi.begin(),fullPhi.end(),[](VD x1, VD x2){return x1[0]==x2[0];});

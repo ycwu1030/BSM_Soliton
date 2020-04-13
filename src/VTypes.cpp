@@ -150,6 +150,24 @@ VVD operator*(const double &s, const VVD &rhs)
     }
     return res;
 }
+VVD operator*(const VVD &lhs, const VD &rhs)
+{
+    VVD res;
+    for (size_t i = 0; i < lhs.size(); i++)
+    {
+        res.push_back(lhs[i]*rhs[i]);
+    }
+    return res;
+}
+VVD operator*(const VD &lhs, const VVD &rhs)
+{
+    VVD res;
+    for (size_t i = 0; i < lhs.size(); i++)
+    {
+        res.push_back(lhs[i]*rhs[i]);
+    }
+    return res;
+}
 VVD operator/(const VVD &lhs, const double &s)
 {
     VVD res;

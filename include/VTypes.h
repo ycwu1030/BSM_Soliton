@@ -44,6 +44,8 @@ VVD operator/(const VVD &lhs, const double &s);
 VVD operator+(const VVD &lhs, const VVD &rhs);
 VVD operator-(const VVD &lhs, const VVD &rhs);
 VD operator*(const VVD &lhs, const VVD &rhs);
+VVD operator*(const VVD &lhs, const VD &rhs);
+VVD operator*(const VD &lhs, const VVD &rhs);
 
 double Simpson(VD X, VD Y);
 

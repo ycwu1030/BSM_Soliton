@@ -40,6 +40,8 @@ private:
     GSL_BSpline_Fit _fitter;
 
     VVD _phi;
+    VVD _phi_lin; // * The straight line between two end points
+    VVD _phi_diff; // * _phi - _phi_lin
 
     dVnD _dV;
     VD _v2; // The `velocity square along the path`
