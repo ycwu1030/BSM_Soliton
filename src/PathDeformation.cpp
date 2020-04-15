@@ -301,7 +301,7 @@ tuple<double,bool,double> Deformation_Spline::step(double last_step, double max_
     VVD Ffit = (phi - _phi_last)/stepsize;
     VD Ffit_mag = pow(Ffit*Ffit,0.5);
     double fRatio2 = *max_element(Ffit_mag.begin(),Ffit_mag.end())/_L;
-    
+    // cout<<"fRatio1: "<<fRatio1<<" fRatio2: "<<fRatio2<<endl;
     double fRatio = checkAfterFit?fRatio2:fRatio1;
     return make_tuple(stepsize,step_reversed,fRatio);
 }
@@ -318,6 +318,8 @@ Deformation_Status Deformation_Spline::deformPath(double start_step,double fRati
     {
         _num_steps += 1;
         tie(stepsize,step_reversed,fRatio) = step(stepsize);
+        // cout<<"\t\tfRatio: "<<fRatio<<endl;
+        // cout<<"\t\tReversed? "<<step_reversed<<endl;
         if (!callback(this))
         {
             deformation_info = FAILCALLBACK;
@@ -363,26 +365,26 @@ KinknD fullKink(VVD pts_init, VnD V_in, dVnD dV_in, int maxiter, double fixEndCu
     Deformation_Status deform_info;
     for (size_t num_iter = 0; num_iter < maxiter; num_iter++)
     {
-        cout<<"Starting Kink step-"<<num_iter+1<<endl;
+        // cout<<"Starting Kink step-"<<num_iter+1<<endl;
         // * 1. Interpolate the path by spline
         SplinePath path(pts,V_in,V_spline_samples,true);
-        cout<<"\tGot the spline path"<<endl;
+        // cout<<"\tGot the spline path"<<endl;
         // for (double s = 0; s <= path.GetDistance(); s+= 0.01*path.GetDistance())
         // {
         //     cout<<"\t"<<s<<"\t"<<path.pts_at_dist(s)<<"\t"<<path.V({s},nullptr)<<"\t"<<path.dV({s},nullptr)[0]<<endl;
         // }
         double s = path.GetDistance();
-        for (size_t i = 0; i < pts.size()*0.1; i++)
-        {
-            cout<<i<<"\t"<<pts[i]<<endl;
-        }
-        cout<<"..."<<endl;
-        for (size_t i = floor(pts.size()*0.9); i < pts.size(); i++)
-        {
-            cout<<i<<"\t"<<pts[i]<<endl;
-        }
-        cout<<"\t"<<0<<"\t"<<path.pts_at_dist(0)<<"\t"<<path.V(0)<<"\t"<<path.dV(0)<<endl;
-        cout<<"\t"<<s<<"\t"<<path.pts_at_dist(s)<<"\t"<<path.V(s)<<"\t"<<path.dV(s)<<endl;
+        // for (size_t i = 0; i < pts.size()*0.1; i++)
+        // {
+        //     cout<<i<<"\t"<<pts[i]<<endl;
+        // }
+        // cout<<"..."<<endl;
+        // for (size_t i = floor(pts.size()*0.9); i < pts.size(); i++)
+        // {
+        //     cout<<i<<"\t"<<pts[i]<<endl;
+        // }
+        // cout<<"\t"<<0<<"\t"<<path.pts_at_dist(0)<<"\t"<<path.V(0)<<"\t"<<path.dV(0)<<endl;
+        // cout<<"\t"<<s<<"\t"<<path.pts_at_dist(s)<<"\t"<<path.V(s)<<"\t"<<path.dV(s)<<endl;
         
         // * 2. Peform 1-D tunneling along the above path;
         Kink1D kink1D(0.0,path.GetDistance(),path.V,path.dV,path.d2V);
@@ -393,36 +395,36 @@ KinknD fullKink(VVD pts_init, VnD V_in, dVnD dV_in, int maxiter, double fixEndCu
         phi = Phi_1D;
         dphi = dPhi_1D;
         tie(phi,dphi) = kink1D.evenlySpacedPhi(phi,dphi,phi.size(),1);
-        cout<<"\tGot 1D tunneling results"<<endl;
+        // cout<<"\tGot 1D tunneling results"<<endl;
 
         dphi.front() = 0;
         dphi.back() = 0;
 
         // * 3. Deform the path
         pts = path.pts_at_dist(phi);
-        for (size_t i = 0; i < pts.size()*0.1; i++)
-        {
-            cout<<phi[i]<<"\t"<<pts[i]<<endl;
-        }
-        cout<<"..."<<endl;
-        for (size_t i = floor(pts.size()*0.9); i < pts.size(); i++)
-        {
-            cout<<phi[i]<<"\t"<<pts[i]<<endl;
-        }
+        // for (size_t i = 0; i < pts.size()*0.1; i++)
+        // {
+        //     cout<<phi[i]<<"\t"<<pts[i]<<endl;
+        // }
+        // cout<<"..."<<endl;
+        // for (size_t i = floor(pts.size()*0.9); i < pts.size(); i++)
+        // {
+        //     cout<<phi[i]<<"\t"<<pts[i]<<endl;
+        // }
         Deformation_Spline deform(pts,dphi,dV_in);
         deform_info = deform.deformPath();
         pts = deform.GetPhi();
-        cout<<"\tPath deformed"<<endl;
-        cout<<"\t"<<pts.front()<<"\t"<<pts.back()<<endl;
-        char tmpname[200];
-        sprintf(tmpname,"steps_caches/deform_step_%d.dat",num_iter);
-        ofstream output(tmpname);
-        output<<"phi0\tphi1"<<endl;
-        for (size_t idd = 0; idd < pts.size(); idd++)
-        {
-            output<<pts[idd]<<endl;
-        }
-        output.close();
+        // cout<<"\tPath deformed"<<endl;
+        // cout<<"\t"<<pts.front()<<"\t"<<pts.back()<<endl;
+        // char tmpname[200];
+        // sprintf(tmpname,"steps_caches/deform_step_%d.dat",num_iter);
+        // ofstream output(tmpname);
+        // output<<"phi0\tphi1"<<endl;
+        // for (size_t idd = 0; idd < pts.size(); idd++)
+        // {
+        //     output<<pts[idd]<<endl;
+        // }
+        // output.close();
         
         // temporally ignore saving the steps
 

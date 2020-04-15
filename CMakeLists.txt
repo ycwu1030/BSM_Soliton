@@ -5,7 +5,7 @@ endif ()
 PROJECT(cxSMSoliton CXX)
 
 
-SET(cxSMSoliton_VERSION "0.1.2")
+SET(cxSMSoliton_VERSION "0.2.2")
 
 FIND_PACKAGE(GSL 2.1 REQUIRED)
 FIND_PACKAGE(Eigen3 REQUIRED)
@@ -21,13 +21,13 @@ FILE(GLOB lib_SOURCES src/*.cpp)
 
 ## Build the Libraries
 # For .a library
-ADD_LIBRARY(cxSMSoliton_static STATIC ${lib_SOURCES})
-SET_TARGET_PROPERTIES(cxSMSoliton_static PROPERTIES
-    LINKER_LANGUAGE CXX
-    VERSION ${cxSMSoliton_VERSION}
-    OUTPUT_NAME cxSMSoliton
-)
-TARGET_LINK_LIBRARIES(cxSMSoliton_static ${GSL_LIBRARIES})
+# ADD_LIBRARY(cxSMSoliton_static STATIC ${lib_SOURCES})
+# SET_TARGET_PROPERTIES(cxSMSoliton_static PROPERTIES
+#    LINKER_LANGUAGE CXX
+#    VERSION ${cxSMSoliton_VERSION}
+#    OUTPUT_NAME cxSMSoliton
+#)
+# TARGET_LINK_LIBRARIES(cxSMSoliton_static ${GSL_LIBRARIES})
 
 # For .so/.dylib library
 ADD_LIBRARY(cxSMSoliton_shared SHARED ${lib_SOURCES})
@@ -43,10 +43,12 @@ SET(cxSMSoliton_LIBRARY cxSMSoliton_shared)
 add_executable(Z2Scan scanner/cxSM_Z2_Scan.cpp)
 add_executable(Z2BiasedScan scanner/cxSM_Z2_Biased_Scan.cpp)
 add_executable(CPParamScan scanner/cxSM_CP_reduced_Scan_param_only.cpp)
+add_executable(CPParamScanCons scanner/cxSM_CP_reduced_Scan_param_only_cons.cpp)
 add_executable(CPScan scanner/cxSM_CP_reduced_Scan.cpp)
 target_link_libraries(Z2Scan ${cxSMSoliton_LIBRARY})
 target_link_libraries(Z2BiasedScan ${cxSMSoliton_LIBRARY})
 target_link_libraries(CPScan ${cxSMSoliton_LIBRARY})
 target_link_libraries(CPParamScan ${cxSMSoliton_LIBRARY})
+target_link_libraries(CPParamScanCons ${cxSMSoliton_LIBRARY})
 
 add_subdirectory(test)

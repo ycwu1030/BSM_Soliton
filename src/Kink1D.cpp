@@ -417,7 +417,7 @@ tuple<VD,VD,VD,VD> Kink1D::findProfile(double dphi0_tol_rel, double phi_tol_rel,
 
     if (ctype == UNDERSHOOT)
     {
-        cout<<"In findProfile: converge in absolute minimum side but undershoot in meta-stable side. Something wrong in the potential!"<<endl;
+        cout<<"In findProfile: converge in absolute minimum side but undershoot in meta-stable side. Either the potential has a Z2 symmetry but the RK precsion is not enough, or something wrong in the potential!"<<endl;
     }
     
     // * Save the profile from phi_bar_top to phi_abs;

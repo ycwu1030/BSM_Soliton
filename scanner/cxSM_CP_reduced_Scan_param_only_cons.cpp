@@ -34,22 +34,21 @@ int main(int argc, char const *argv[])
     VD vs_candi = {10,20,30,40,50,60,70,80,90,100};
     VD M2_candi = {10,20,30,40,50,60,70,80,90,100};
     output<<"MHL\tMHH\tMHA\tvs\ttheta1\ttheta2\ttheta3\tmu2\tb1\tb2\tlam\tdel2\td1\td2\talpha\tUnitarity\tStability\tGlobal"<<endl;
-    for (int i = 0; i < 10; i++)
+    while ( NGOT < 10000 )
     {
-        for (int j = 0; j < 10; j++)
-        {
-            vs = vs_candi[i]*1000.0; // 100 TeV;
-            MHH = M2_candi[j]*1000.0;
+            vs = RandomReal(10,100);
+            MHH = RandomReal(10,100);
+            vs *= 1000.0; // 100 TeV;
+            MHH *= 1000.0;
             MHA = MHH + 100;
             theta1 = 0.001;
             theta3 = 0.0001; 
             good = model.Set_Physical_Parameters_vs_theta(vs,MHH,MHA,theta1,theta3);
-            if (!good||!model.CheckStability()||!model.CheckUnitarity()||!model.CheckGlobalMinimum()) continue;
+            // if (!good||!model.CheckStability()||!model.CheckUnitarity()||!model.CheckGlobalMinimum()) continue;
             model.GetVS(vsr,vsi);
             model.GetTheta(2,theta2);
             ++NGOT;
             output<<model<<"\t"<<model.CheckUnitarity()<<"\t"<<model.CheckStability()<<"\t"<<model.CheckGlobalMinimum()<<endl;
-        }
     }
 
     // while (NGOT < 2*100)

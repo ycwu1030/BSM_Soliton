@@ -20,9 +20,9 @@ class GSL_BSpline_Fit
 {
 private:
     VVD _Y;
-    // VVD _Y_lin;
-    // VVD _Y_diff;
-    // VVD _Y_diff_transposed;
+    VVD _Y_lin;
+    VVD _Y_diff;
+    VVD _Y_diff_transposed;
     VVD _Y_transposed;
     VD _X;
     VD _t;

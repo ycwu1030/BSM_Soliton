@@ -383,6 +383,7 @@ GSL_BSpline_Fit::~GSL_BSpline_Fit()
 void GSL_BSpline_Fit::SetDataX(VD X)
 {
     _X = X;
+    _t = (X-X.front())/(X.back()-X.front());
     _NDataPoints = X.size();
     if (!_XC)
     {
@@ -411,8 +412,19 @@ void GSL_BSpline_Fit::SetDataX(VD X)
 void GSL_BSpline_Fit::UpdateDataY(VVD Y)
 {
     _Y = Y;
+    // _Y_lin.clear();
+    // for (int i = 0; i < _t.size(); i++)
+    // {
+    //     _Y_lin.push_back(_Y.front() + _t[i]*(_Y.back()-_Y.front()));
+    // }
+    // _Y_diff = _Y - _Y_lin;
+    
     _Y_transposed = transpose(Y);
     _NFields = _Y_transposed.size();
+
+    // _Y_diff.front()=VD(_NFields,0);
+    // _Y_diff.back()=VD(_NFields,0);
+    // _Y_diff_transposed = transpose(_Y_diff);
 
     for (size_t i = 0; i < _Cs.size(); i++)
     {
@@ -452,6 +464,7 @@ VD GSL_BSpline_Fit::valAt(double x)
     {
         gsl_multifit_linear_est(_B,_Cs[i],_COVs[i],&res[i],&yerr);
     }
+    // res = res + _Y.front() + (x-_X.front())/(_X.back()-_X.front())*(_Y.back()-_Y.front());
     return res;
 }
 VVD GSL_BSpline_Fit::valAt(VD X)
