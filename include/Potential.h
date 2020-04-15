@@ -27,6 +27,7 @@ public:
 
     double GetTotalEnergy(VD x, VVD fields);
     double GetTension(VD x, VVD fields);
+    void DumpFullSolution(VD x, VVD fields, std::string filename);
     void DumpEnergyDensity(VD x, VVD fields, std::string filename);
 
 };

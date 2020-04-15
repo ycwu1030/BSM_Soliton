@@ -1,8 +1,10 @@
 #include "Potential.h"
 #include <cmath>
+#include <iomanip>
 #include <fstream>
 #include "Eigen/Dense"
 
+using namespace std;
 using namespace Eigen;
 
 double Potential::GetTotalEnergy(VD x, VVD fields)
@@ -20,6 +22,28 @@ double Potential::GetTotalEnergy(VD x, VVD fields)
         energy += density*DeltaZ;
     }
     return energy;
+}
+void Potential::DumpFullSolution(VD x, VVD fields, std::string filename)
+{
+    double density;
+    std::ofstream output(filename.c_str());
+    double V0 = V0_global();
+    output<<"z";
+    for (size_t i = 0; i < fields.front().size(); i++)
+    {
+        output<<"\tphi"<<i;
+    }
+    output<<"\tdensity"<<endl;
+    for (int i = 0; i < x.size()-1; i++)
+    {
+        double DeltaZ = x[i+1]-x[i];
+        double xaver = (x[i+1]+x[i])/2;
+        VD yaver = (fields[i+1]+fields[i])/2;
+        VD ydif = (fields[i+1]-fields[i]);
+        density=((ydif/DeltaZ*ydif/DeltaZ)/2 + Vtotal(yaver) - V0);
+        output<<scientific<<setprecision(10)<<x[i]<<"\t"<<fields[i]<<"\t"<<density<<endl;
+    }
+    output<<scientific<<setprecision(10)<<x[x.size()-1]<<"\t"<<fields[fields.size()-1]<<"\t"<<density<<endl;
 }
 void Potential::DumpEnergyDensity(VD x, VVD fields,std::string filename)
 {

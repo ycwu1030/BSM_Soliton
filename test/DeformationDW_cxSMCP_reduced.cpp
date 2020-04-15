@@ -39,13 +39,14 @@ int main(int argc, char const *argv[])
         return model.dVtotal(field,scale);
     };
     KinknD sol = fullKink(pts_init,vtol,dvtol);
-    ofstream output("cxSMCP_reduced_PDDW_test.dat");
-    output<<"r\tphi0\tphi1\tphi2\tphi1D\tdphi1D"<<endl;
-    for (int i = 0; i < sol.R.size(); i++)
-    {
-        output<<scientific<<setprecision(10)<<sol.R[i]<<"\t"<<sol.Phi[i]<<"\t"<<sol.Phi_1D[i]<<"\t"<<sol.dPhi_1D[i]<<endl;
-    }
-    model.DumpEnergyDensity(sol.R,sol.Phi,"cxSMCP_reduced_PDDW_density.dat");
+    // ofstream output("cxSMCP_reduced_PDDW_test.dat");
+    // output<<"r\tphi0\tphi1\tphi2\tphi1D\tdphi1D"<<endl;
+    // for (int i = 0; i < sol.R.size(); i++)
+    // {
+    //     output<<scientific<<setprecision(10)<<sol.R[i]<<"\t"<<sol.Phi[i]<<"\t"<<sol.Phi_1D[i]<<"\t"<<sol.dPhi_1D[i]<<endl;
+    // }
+    // model.DumpEnergyDensity(sol.R,sol.Phi,"cxSMCP_reduced_PDDW_density.dat");
+    model.DumpFullSolution(sol.R,sol.Phi,"cxSMCP_reduced_PDDW_full.dat");
     cout<<"Energy: "<<model.GetTotalEnergy(sol.R,sol.Phi)<<endl;
     cout<<"Tension: "<<model.GetTension(sol.R,sol.Phi)<<endl;
     // RX.DumpSolution("Relaxation_DW_test.dat");
