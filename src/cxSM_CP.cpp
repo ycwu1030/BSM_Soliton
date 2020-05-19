@@ -323,6 +323,8 @@ double cxSM_CP::_arg(double vsr, double vsi)
 }
 void cxSM_CP::_GetThetas()
 {
+    // Please note that following treatment is not correct actually.
+    // I keep it temporarily, I need to update the algorithm later.
     double s2 = _R(0,2);
     double c2 = sqrt(1-s2*s2);
 

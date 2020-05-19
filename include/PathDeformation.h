@@ -60,7 +60,7 @@ public:
     ~Deformation_Spline();
 
     std::tuple<VVD,VVD> forces();
-    std::tuple<double,bool,double> step(double last_step, double maxstep=0.1, double minstep=1e-4, double reverseCheck=0.15, double stepIncrease=1.5, double stepDecrease=5.0, bool checkAfterFit=true);
+    std::tuple<double,bool,double> step(double last_step, double maxstep=0.1, double minstep=1e-5, double reverseCheck=0.15, double stepIncrease=1.5, double stepDecrease=5.0, bool checkAfterFit=true);
     Deformation_Status deformPath(double start_step=2e-3,double fRatioConv=1e-2,double converge_0 = 5.0, double fRatioIncrease=5.0, int maxiter=500, std::function<bool(Deformation_Spline*)> callback=[](Deformation_Spline* cur){return true;});
 
     VVD GetPhi(){return _phi;};

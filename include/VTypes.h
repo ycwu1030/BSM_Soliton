@@ -77,6 +77,9 @@ bool CloseQ(double x1, double x2);
 
 bool CloseQ(VD x1, VD x2);
 
+
+double GetMag(double vre, double vim);
+double GetArg(double vre, double vim);
 double GetAngle(double sin_th, double cos_th);
 
 #endif

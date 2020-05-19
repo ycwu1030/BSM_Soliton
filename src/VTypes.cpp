@@ -341,6 +341,15 @@ VD cumtrapz(VD pts, VD x, double dx, double initial)
     return res;
 }
 
+double GetMag(double vre, double vim)
+{
+    return sqrt(vre*vre+vim*vim);
+}
+double GetArg(double vre, double vim)
+{
+    double mag = GetMag(vre,vim);
+    return GetAngle(vim/mag,vre/mag);
+}
 double GetAngle(double sth, double cth)
 {
     double angle = asin(sth);

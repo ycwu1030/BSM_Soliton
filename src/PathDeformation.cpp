@@ -318,6 +318,8 @@ Deformation_Status Deformation_Spline::deformPath(double start_step,double fRati
     {
         _num_steps += 1;
         tie(stepsize,step_reversed,fRatio) = step(stepsize);
+        // cout<<"\t\tNumSteps: "<<_num_steps<<endl;
+        // cout<<"\t\tstepsize: "<<stepsize<<endl;
         // cout<<"\t\tfRatio: "<<fRatio<<endl;
         // cout<<"\t\tReversed? "<<step_reversed<<endl;
         if (!callback(this))
@@ -350,7 +352,14 @@ Deformation_Status Deformation_Spline::deformPath(double start_step,double fRati
             _F_list.resize(minfRatio_index);
             deformation_info = DIVERGENT;
             break;
-        }   
+        } 
+
+        if (_num_steps >= maxiter)
+        {
+            deformation_info = REACHMAXITER;
+            break;
+        }
+          
     }
     return deformation_info;
 }
@@ -390,12 +399,13 @@ KinknD fullKink(VVD pts_init, VnD V_in, dVnD dV_in, int maxiter, double fixEndCu
         Kink1D kink1D(0.0,path.GetDistance(),path.V,path.dV,path.d2V);
         // cout<<"\tTry to find 1D profile"<<endl;
         tie(R,Phi_1D,dPhi_1D,Rerr) = kink1D.findProfile();
+        // cout<<"\tGot 1D tunneling results"<<endl;
         // cout<<"\t"<<R.front()<<"\t"<<Phi_1D.front()<<endl;
         // cout<<"\t"<<R.back()<<"\t"<<Phi_1D.back()<<endl;
         phi = Phi_1D;
         dphi = dPhi_1D;
         tie(phi,dphi) = kink1D.evenlySpacedPhi(phi,dphi,phi.size(),1);
-        // cout<<"\tGot 1D tunneling results"<<endl;
+        // cout<<"\tGot 1D tunneling results evenly spaced"<<endl;
 
         dphi.front() = 0;
         dphi.back() = 0;
