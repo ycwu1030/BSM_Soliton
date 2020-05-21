@@ -131,9 +131,11 @@ GSL_Spline_Inter::GSL_Spline_Inter()
 }
 GSL_Spline_Inter::~GSL_Spline_Inter()
 {
+    // cout<<"Release gsl_interp_accel"<<endl;
     gsl_interp_accel_free(_acc);
-    if (!_spline)
+    if (_spline != nullptr)
     {
+        // cout<<"Release gls_spline space"<<endl;
         gsl_spline_free(_spline);
     }
 }
@@ -147,7 +149,7 @@ void GSL_Spline_Inter::SetData(VD *Y, VD *X)
     _ymax = Y->back();
     _yaver = (_ymin + _ymax)/2.0;
     _size = X->size();
-    if (!_spline)
+    if (_spline != nullptr)
     {
         gsl_spline_free(_spline);
     }
@@ -367,8 +369,8 @@ GSL_BSpline_Fit::~GSL_BSpline_Fit()
     gsl_bspline_free(_bw);
     gsl_vector_free(_B);
     gsl_matrix_free(_dB);
-    if(!_XC) gsl_matrix_free(_XC);
-    if(!_mw) gsl_multifit_linear_free(_mw);
+    if(_XC != nullptr) gsl_matrix_free(_XC);
+    if(_mw != nullptr) gsl_multifit_linear_free(_mw);
     for (size_t i = 0; i < _Cs.size(); i++)
     {
         gsl_vector_free(_Cs[i]);
@@ -385,7 +387,7 @@ void GSL_BSpline_Fit::SetDataX(VD X)
     _X = X;
     _t = (X-X.front())/(X.back()-X.front());
     _NDataPoints = X.size();
-    if (!_XC)
+    if (_XC != nullptr)
     {
         gsl_matrix_free(_XC);
     }
@@ -403,7 +405,7 @@ void GSL_BSpline_Fit::SetDataX(VD X)
             gsl_matrix_set(_XC,i,j,gsl_vector_get(_B,j));
         }
     }
-    if (!_mw)
+    if (_mw != nullptr)
     {
         gsl_multifit_linear_free(_mw);
     }
