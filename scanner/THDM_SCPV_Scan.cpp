@@ -36,25 +36,26 @@ int main(int argc, char const *argv[])
     bool good;
     output<<"id\t"<<model.repr()<<"\tUnitarity\tStability\tGlobal\tSigma"<<endl;
 
-    while (NGOT < 10000)
+    while (NGOT < 1000)
     {
         ++NTRIED;
-        cout<<"Try "<<NTRIED<<endl;
-        MHH = RandomReal(0,500);
-        MHA = RandomReal(0,500);
-        MHpm = RandomReal(0,500);
-        tb = RandomReal(0.02,50);
+        // cout<<"Try "<<NTRIED<<endl;
+        MHH = RandomReal(150,1000);
+        MHA = RandomReal(150,1000);
+        MHpm = RandomReal(150,1000);
+        tb = RandomReal(0.5,20);
         beta = atan(tb);
         alpha = beta-M_PI_2;
-        alphac = pow(10,RandomReal(-3,-1));
+        alphac = pow(10,RandomReal(-10,-1));
         good = model.Set_Physical_Parameters(beta,MHH,MHA,MHpm,alpha,alphac);
         if (!good) {
-            cout<<NTRIED<<": Bad input"<<endl;
+            // cout<<NTRIED<<": Bad input"<<endl;
             continue;
         }
-        cout<<NTRIED<<": Good input"<<endl;
+        // cout<<NTRIED<<": Good input"<<endl;
         if (!model.CheckStability()||!model.CheckUnitarity()||!model.CheckGlobalMinimum()) continue;
-        cout<<NTRIED<<": Good Theoretical"<<endl;
+        cout<<NTRIED<<": Good Points"<<endl;
+        cout<<"\t"<<beta<<"\t"<<MHH<<"\t"<<MHA<<"\t"<<MHpm<<"\t"<<alpha<<"\t"<<alphac<<endl;
         model.GetTheta(theta);
         double vev = model.GetVEV();
         double v1 = vev*cos(beta);

@@ -167,8 +167,6 @@ tuple<double, VD, CONVERGENCETYPE> Kink1D::integrateProfile(VD y0, VD y_desired,
         y_tol_scale[0] = abs(phi_final-phi_bar_top);
         y_tol_scale[1] = abs(phi_final-phi_bar_top)/zscale;
     }
-    
-    
     // cout<<"desired: "<<y_desired<<endl;
     // cout<<"y-tol-scale: "<<y_tol_scale<<endl;
     VD y_diff;
@@ -182,7 +180,7 @@ tuple<double, VD, CONVERGENCETYPE> Kink1D::integrateProfile(VD y0, VD y_desired,
     VD dydr_cache;
     VD y_scale;
     VD y_inter(2);
-    int ysign = signbit(y[0] - phi_final)?-1:1;
+    int y_direction_sign = y[0] < phi_final?1:-1; // This is the direction of the solution, if y[0] < phi_final, it means, y[0] needs to be increased, while y[0] > phi_final means y[0] needs to be decreased.
 
     CONVERGENCETYPE convergQ = NONE;
 
@@ -232,12 +230,19 @@ tuple<double, VD, CONVERGENCETYPE> Kink1D::integrateProfile(VD y0, VD y_desired,
             break;
         }
 
-        if (y_cache[1]*ysign > 0)
+        if (y_cache[1]*y_direction_sign < 0)
         {
             // * This means that the field is rolling back, will never reach phi_final;
             // * So we try to stop the integrate at y1=0 (dphi/dr = 0)
             convergQ = UNDERSHOOT;
             inter_param = {y[1], dydr[1]*dr_did, y_cache[1], dydr_cache[1]*dr_did,0};
+            if (cubicInterpolation(0,&inter_param)*cubicInterpolation(1,&inter_param) > 0)
+            {
+                cout<<"In integrateProfile: Error in handling UNDERSHOOT case, the two end points suppose to have opposite sign, however they have the same sign, just break"<<endl;
+                r = r_cache;
+                y = y_cache;
+                break;
+            }
             x = find_root_gsl_wraper(&cubicInterpolation,&inter_param,1,0);
             r += dr_did*x;
             y_inter[1] = cubicInterpolation(x,&inter_param);
@@ -247,12 +252,19 @@ tuple<double, VD, CONVERGENCETYPE> Kink1D::integrateProfile(VD y0, VD y_desired,
             break;
         }
 
-        if ((y_cache[0]-phi_final)*ysign<0)
+        if ((y_cache[0]-phi_final)*y_direction_sign > 0)
         {
             // * This means that the field is already passing the desired ending point
             // * Then we try to stop the integrate at y0 = phi_final;
             convergQ = OVERSHOOT;
             inter_param = {y[0],dydr[0]*dr_did,y_cache[0],dydr_cache[0]*dr_did,phi_final};
+            if (cubicInterpolation(0,&inter_param)*cubicInterpolation(1,&inter_param) > 0)
+            {
+                cout<<"In integrateProfile: Error in handling OVERSHOOT case, the two end points suppose to have opposite sign, however they have the same sign, just break"<<endl;
+                r = r_cache;
+                y = y_cache;
+                break;
+            }
             x = find_root_gsl_wraper(&cubicInterpolation,&inter_param,1,0);
             r += dr_did*x;
             inter_param = {y[1],dydr[1]*dr_did,y_cache[1],dydr_cache[1]*dr_did,0};
