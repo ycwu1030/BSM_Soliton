@@ -36,7 +36,7 @@ int main(int argc, char const *argv[])
     bool good;
     output<<"id\t"<<model.repr()<<"\tUnitarity\tStability\tGlobal\tSigma"<<endl;
 
-    while (NGOT < 1000)
+    while (NGOT < 10000)
     {
         ++NTRIED;
         // cout<<"Try "<<NTRIED<<endl;

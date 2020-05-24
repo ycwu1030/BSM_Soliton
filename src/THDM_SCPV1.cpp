@@ -119,6 +119,14 @@ bool THDM_SCPV1::Set_Physical_Parameters(double beta, double m2, double m3, doub
     // cout<<"Got R"<<endl;
     // * 3. Get theta
     _theta = atan(-_sb*(_MHL2*_R(0,2)*_R(0,2)+_MHH2*_R(1,2)*_R(1,2)+_MHA2*_R(2,2)*_R(2,2))/(_MHL2*_R(0,0)*_R(0,2)+_MHH2*_R(1,0)*_R(1,2)+_MHA2*_R(2,0)*_R(2,2)));
+    if (_theta < 0)
+    {
+        // use the other solution to alphab to have positive theta
+        _alphab = M_PI - _alphab;
+        _GetR();
+        _theta = atan(-_sb*(_MHL2*_R(0,2)*_R(0,2)+_MHH2*_R(1,2)*_R(1,2)+_MHA2*_R(2,2)*_R(2,2))/(_MHL2*_R(0,0)*_R(0,2)+_MHH2*_R(1,0)*_R(1,2)+_MHA2*_R(2,0)*_R(2,2)));
+    }
+    
     _tth = tan(_theta);
     _sth = sin(_theta);
     _cth = cos(_theta);
