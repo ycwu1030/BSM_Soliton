@@ -15,12 +15,12 @@ int main(int argc, char const *argv[])
     // model.SetInput(157.633,42.647,0.335465);
     // model.Set_Physical_Parameters(157.633,0.335465,42.647);
     // model.Set_Physical_Parameters(15.0,0.1,66.0);
-    double beta = atan(5);
-    double MHH = 500;
-    double MHA = 510;
-    double MHpm = 510;
+    double beta = atan(2);
+    double MHH = 400;
+    double MHA = 410;
+    double MHpm = 410;
     double alpha = beta-M_PI_2;
-    double alphac = 0.01;
+    double alphac = 1e-5;
     double theta;
     bool good = model.Set_Physical_Parameters(beta,MHH,MHA,MHpm,alpha,alphac);
     model.PrintParameters();
