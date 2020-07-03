@@ -18,10 +18,10 @@ int main(int argc, char const *argv[])
     double vsr,vsi;
     double vs = 100000;
     double MHH = 10000;
-    double MHA = 11000;
+    double MHA = 10100;
     double theta1 = 0.0001;
     double theta3 = 0.01;
-    bool good = model.Set_Physical_Parameters_vs_theta(vs,MHH,MHA,theta1,theta3);
+    bool good = model.Set_Physical_Parameters_vsi_theta(vs,MHH,MHA,theta1,theta3);
     model.PrintParameters();
     cout<<"Unitarity: "<<model.CheckUnitarity()<<endl;
     cout<<"Stability: "<<model.CheckStability()<<endl;

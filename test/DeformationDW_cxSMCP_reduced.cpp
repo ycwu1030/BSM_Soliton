@@ -21,7 +21,7 @@ int main(int argc, char const *argv[])
     double MHA = 10100;
     double theta1 = 0.001;
     double theta3 = 0.0001;
-    bool good = model.Set_Physical_Parameters_vs_theta(vs,MHH,MHA,theta1,theta3);
+    model.Set_Physical_Parameters_vs_theta(vs,MHH,MHA,theta1,theta3);
     model.PrintParameters();
     cout<<"Unitarity: "<<model.CheckUnitarity()<<endl;
     cout<<"Stability: "<<model.CheckStability()<<endl;

@@ -66,6 +66,7 @@ public:
     bool Set_Physical_Parameters(double vsr, double vsi, double MHH, double MHA, double theta1, double theta2, double theta3);
     bool Set_Physical_Parameters_vs_theta(double vs, double MHH, double MHA, double theta1, double theta3);
     bool Set_Physical_Parameters_vsr_theta(double vsr, double MHH, double MHA, double theta1, double theta3);
+    bool Set_Physical_Parameters_vsi_theta(double vsi, double MHH, double MHA, double theta1, double theta3);
 
     void GetVS(double &vs_real, double &vs_img){vs_real = _vsr; vs_img = _vsi;};
     void GetTheta(int id, double &theta)

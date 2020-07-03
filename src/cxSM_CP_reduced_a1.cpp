@@ -94,6 +94,18 @@ bool cxSM_CP_reduced_a1::Set_Physical_Parameters_vsr_theta(double vsr, double MH
     Set_Physical_Parameters(vsr,vsi,MHH,MHA,theta1,theta2,theta3);
     return true;
 }
+bool cxSM_CP_reduced_a1::Set_Physical_Parameters_vsi_theta(double vsi, double MHH, double MHA, double theta1, double theta3)
+{
+    double alpha,theta2;
+    bool good = _GetAlphaTheta2(MHH,MHA,theta1,theta3,alpha,theta2);
+    if (!good)
+    {
+        return false;
+    }
+    double vsr = vsi/tan(alpha);
+    Set_Physical_Parameters(vsr,vsi,MHH,MHA,theta1,theta2,theta3);
+    return true;
+}
 bool cxSM_CP_reduced_a1::_GetAlphaTheta2(const double MHH, const double MHA, const double theta1, double theta3, double &alpha, double &theta2)
 {
     // In this situation, we always have solution
@@ -170,6 +182,7 @@ bool cxSM_CP_reduced_a1::Set_Physical_Parameters(double vsr, double vsi, double 
             _IndexInput = i;
         }
     }
+    return true;
 }
 void cxSM_CP_reduced_a1::_GetR()
 {
@@ -286,7 +299,6 @@ double cxSM_CP_reduced_a1::Vtotal(VD field_values, double scale)
 }
 VD cxSM_CP_reduced_a1::dVtotal(VD field_values, double scale)
 {
-    double vsr = field_values[1];
     VD res = cxSM_CP::dVtotal(field_values,scale);
     res[1] += sqrt(2)*_a1/pow(scale,3);
     return res;

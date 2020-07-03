@@ -12,8 +12,8 @@ int main(int argc, char const *argv[])
     cxSM_CP_reduced_a1 model;
     // bool notgot = true;
     bool good;
-    double vs,alpha;
-    double vsr,vsi,MHH,MHA,theta1,theta3;
+    double vs;
+    double MHH,MHA,theta1,theta3;
     default_random_engine gen;
     uniform_real_distribution<double> uni(0,1);
     while (true)
