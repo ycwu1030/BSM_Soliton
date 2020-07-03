@@ -31,13 +31,11 @@ int main(int argc, char const *argv[])
     VD X;
     VVD Y;
     bool good;
-    VD vs_candi = {10,20,30,40,50,60,70,80,90,100};
-    VD M2_candi = {10,20,30,40,50,60,70,80,90,100};
     output<<"ID\tMHL\tMHH\tMHA\tvs\ttheta1\ttheta2\ttheta3\tmu2\tb2\tlam\tdel2\td2\ta1\tb1\talpha\tvsr\tvsi\tUnitarity\tStability\tGlobal\tEnergy"<<endl;
-    while ( NGOT < 15000 )
+    for (int i = 0; i < 200; i++)
     {
-            vs = RandomReal(10,50);
-            MHH = RandomReal(10,50);
+            vs = 10.0+i*(100.0-10.0)/(200.0-1.0);
+            MHH = 10.;
             vs *= 1000.0; // 100 TeV;
             MHH *= 1000.0;
             MHA = MHH + 100;

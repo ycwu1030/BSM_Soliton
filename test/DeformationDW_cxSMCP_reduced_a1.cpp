@@ -18,9 +18,9 @@ int main(int argc, char const *argv[])
     double vsr,vsi;
     double vs = 100000;
     double MHH = 10000;
-    double MHA = 10100;
+    double MHA = 15000;
     double theta1 = 0.0001;
-    double theta3 = 0.01;
+    double theta3 = 0.8;
     bool good = model.Set_Physical_Parameters_vsi_theta(vs,MHH,MHA,theta1,theta3);
     model.PrintParameters();
     cout<<"Unitarity: "<<model.CheckUnitarity()<<endl;
