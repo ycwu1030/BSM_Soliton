@@ -3,6 +3,7 @@
 
 #include "cxSM_CP.h"
 #include <iostream>
+#include <iomanip>
 
 class cxSM_CP_reduced_a1: public cxSM_CP
 {
@@ -86,11 +87,12 @@ public:
         }
     }
     friend std::ostream &operator<<(std::ostream &os, const cxSM_CP_reduced_a1 &mod){
+        os << std::scientific<<std::setprecision(10);
         os << mod._MHL << "\t" << mod._MHH << "\t" << mod._MHA << "\t" << mod._vs;
         os << "\t" << mod._theta1 << "\t" << mod._theta2 << "\t" << mod._theta3;
-        os << "\t" << mod._mu2 << "\t" << mod._b1 << "\t" << mod._b2;
-        os << "\t" << mod._lam << "\t" << mod._del2 << "\t" << mod._a1;
-        os << "\t" << mod._b1 << "\t" << mod._alpha;
+        os << "\t" << mod._mu2 << "\t" << mod._b2;
+        os << "\t" << mod._lam << "\t" << mod._del2 << "\t" << mod._d2;
+        os << "\t" << mod._a1 << "\t" << mod._b1 << "\t" << mod._alpha;
         return os;
     };
     // * Inherit from cxSM_CP
