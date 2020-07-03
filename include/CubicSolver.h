@@ -1,7 +1,7 @@
 #ifndef CUBICSOLVER_H
 #define CUBICSOLVER_H
 
-
+#include <vector>
 // Here I only list the situation for real solution, I don't care the complex solution
 enum CUBICSTATES
 {
@@ -24,6 +24,7 @@ public:
 
     CUBICSTATES STATE;
     double SOLUTIONS[3];
+    std::vector<double> GetRealSolution();
 
 private:
     double A0,A1,A2,A3;

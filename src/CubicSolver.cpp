@@ -75,3 +75,26 @@ void CubicSolver::Solve()
         SOLUTIONS[2] = -b + 2*sqrt(beta)*cos(theta/3.0-2.0*Pi/3.0); 
     }
 }
+std::vector<double> CubicSolver::GetRealSolution()
+{
+    std::vector<double> res;
+    if (STATE == ONEREAL || STATE == THREEEQUALREAL)
+    {
+        res.push_back(SOLUTIONS[0]);
+        return res;
+    }
+    else if (STATE == ONETWO)
+    {
+        res.push_back(SOLUTIONS[0]);
+        res.push_back(SOLUTIONS[1]);
+        return res;
+    }
+    else // (STATE == THREEREAL)
+    {
+        res.push_back(SOLUTIONS[0]);
+        res.push_back(SOLUTIONS[1]);
+        res.push_back(SOLUTIONS[2]);
+        return res;
+    }
+    
+}
