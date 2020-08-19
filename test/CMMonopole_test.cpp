@@ -17,7 +17,20 @@ int main(int argc, char const *argv[])
 
     VD X;
     VVD Y;
-    bool good = solver.Solve(X,Y);
-    solver.DumpSolution("CMMonopole_sol_paper.dat");
+    bool good;
+    
+    solver.SetMHL(10.0);
+    good = solver.Solve(X,Y);
+    solver.DumpSolution("CMMonopole_sol_ms10.dat");
+
+    solver.SetMHL(1000.0);
+    good = solver.Solve(X,Y);
+    solver.DumpSolution("CMMonopole_sol_ms1000.dat");
+
+    solver.SetMHL(10000.0);
+    solver.SetMeshPoints(500);
+    solver.SetXRange(0.5,20);
+    good = solver.Solve(X,Y);
+    solver.DumpSolution("CMMonopole_sol_ms10000.dat");
     return 0;
 }
