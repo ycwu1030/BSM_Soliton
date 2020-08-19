@@ -10,6 +10,7 @@
 class CMMonopoleSolver: public SM
 {
 private:
+    double mS;
     double lamh;
     double g2;
     double gpp2;
@@ -39,6 +40,7 @@ public:
     CMMonopoleSolver(VD Left_Bound, VD Right_Bound, int mesh_points = 400);
     ~CMMonopoleSolver(){};
 
+    void SetMHL(double MS = 125);
     void SetXRange(double x_min=0.1,double x_max=25);
     void SetMeshPoints(int mesh_points = 400) { _mesh_points = mesh_points;};
     void SetBoundary(VD Left_Bound, VD Right_Bound);

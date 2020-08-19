@@ -22,9 +22,7 @@ CMMonopoleSolver::CMMonopoleSolver(int mesh_points)
     _x_max = 25.01;
     SetMeshPoints(mesh_points);
 
-    lamh = MHL2/2.0/vev/vev;
-    g2 = pow(g_weak,2);
-    gpp2 = pow(g_weak,2)+pow(gp_hyper,2);
+    SetMHL();
 }
 
 CMMonopoleSolver::CMMonopoleSolver(VD Left_Bound, VD Right_Bound, int mesh_points)
@@ -37,11 +35,17 @@ CMMonopoleSolver::CMMonopoleSolver(VD Left_Bound, VD Right_Bound, int mesh_point
     _x_max = 25.01;
     SetMeshPoints(mesh_points);
 
-    lamh = MHL2/2.0/vev/vev;
-    g2 = pow(g_weak,2);
-    gpp2 = pow(g_weak,2)+pow(gp_hyper,2);
+    SetMHL();    
 
     SetBoundary(Left_Bound,Right_Bound);
+}
+
+void CMMonopoleSolver::SetMHL(double MS)
+{
+    mS = MS;
+    lamh = mS*mS/2.0/vev/vev;
+    g2 = pow(g_weak,2);
+    gpp2 = pow(g_weak,2)+pow(gp_hyper,2);
 }
 
 void CMMonopoleSolver::SetXRange(double xmin, double xmax)
