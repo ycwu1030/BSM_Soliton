@@ -10,6 +10,7 @@
 class CMMonopoleSolver: public SM
 {
 private:
+
     double mS;
     double lamh;
     double g2;
@@ -28,6 +29,10 @@ private:
     double _x_max;
     VD _Left_Bound;
     VD _Right_Bound;
+
+    // * The two index for asymptotic form for x->0
+    double _deltam;
+    double _deltap;
 
     void SetODE_LeftBoundary(const Relaxation_Param relax_param, VVD &S);
     void SetODE_RightBoundary(const Relaxation_Param relax_param, VVD &S);
