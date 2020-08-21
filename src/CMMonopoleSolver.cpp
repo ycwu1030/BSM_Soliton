@@ -201,20 +201,24 @@ void CMMonopoleSolver::SetODE_LeftBoundary(const Relaxation_Param relax_param, V
     S[5][9] = 2.0;
     S[5][13] = -_x_min;
 
-    S[5][relax_param.k_coeff] = 2.0*y1[1] - 2 - y1[5]*_x_min;
+    S[5][relax_param.k_coeff] = 2.0*y1[1] - 2.0 - y1[5]*_x_min;
     
     S[6][10] = 1.0;
     S[6][14] = -_x_min;
 
     S[6][relax_param.k_coeff] = y1[2] - y1[6]*_x_min;
 
-    S[7][10] = -1.0;
+    // S[7][10] = -1.0;
+    // S[7][11] = 1.0;
+    // S[7][14] = _x_min/2.0/_deltap;
+    // S[7][15] = -_x_min/2.0/_deltap;
+
+    // S[7][relax_param.k_coeff] = y1[3] - y1[2] - _Left_Bound[3] - (y1[7] - y1[6])*_x_min/2.0/_deltap;
     S[7][11] = 1.0;
-    S[7][14] = _x_min/2.0/_deltap;
+    S[7][14] = -_x_min + _x_min/2.0/_deltap;
     S[7][15] = -_x_min/2.0/_deltap;
 
-    S[7][relax_param.k_coeff] = y1[3] - y1[2] - _Left_Bound[3] - (y1[7] - y1[6])*_x_min/2.0/_deltap;
-
+    S[7][relax_param.k_coeff] = y1[3] - _Left_Bound[3] - y1[6]*_x_min + y1[6]*_x_min/2.0/_deltap - y1[7]*_x_min/2.0/_deltap; 
 }
 
 void CMMonopoleSolver::SetODE_RightBoundary(const Relaxation_Param relax_param, VVD &S)
@@ -226,7 +230,7 @@ void CMMonopoleSolver::SetODE_RightBoundary(const Relaxation_Param relax_param, 
         {
             if (i == j)
             {
-                S[i][j+_ODE_DOF] = 1;
+                S[i][j+_ODE_DOF] = 1.0;
             }
         }
         S[i][relax_param.k_coeff] = y1[i] - _Right_Bound[i];
@@ -251,47 +255,47 @@ void CMMonopoleSolver::SetODE_Body(const Relaxation_Param relax_param, VVD &S)
         {
             if (i == j)
             {
-                S[i][j] = -1;
-                S[i][j+_ODE_DOF] = 1;
+                S[i][j] = -1.0;
+                S[i][j+_ODE_DOF] = 1.0;
             }
             if (i + _N_Fields == j)
             {
-                S[i][j] = -h/2;
-                S[i][j+_ODE_DOF] = -h/2;
+                S[i][j] = -h/2.0;
+                S[i][j+_ODE_DOF] = -h/2.0;
             }
         }
         S[i][relax_param.k_coeff] = dy[i] - h*ya[i+_N_Fields]; 
     }
 
-    S[4][0] = (-2*ya[1]*ya[1]/xa/xa+ya[3]*ya[3]+lamh*(2-6*ya[0]*ya[0]))*h/8.;
-    S[4][1] = -h*ya[0]*ya[1]/2/xa/xa;
+    S[4][0] = (-2.0*ya[1]*ya[1]/xa/xa+ya[3]*ya[3]+lamh*(2.0-6.0*ya[0]*ya[0]))*h/8.0;
+    S[4][1] = -h*ya[0]*ya[1]/2.0/xa/xa;
     S[4][2] = 0;
-    S[4][3] = h*ya[0]*ya[3]/4;
-    S[4][4] = h/xa-1;
+    S[4][3] = h*ya[0]*ya[3]/4.0;
+    S[4][4] = h/xa-1.0;
     S[4][5] = 0;
     S[4][6] = 0;
     S[4][7] = 0;
-    S[4][8] = (-2*ya[1]*ya[1]/xa/xa+ya[3]*ya[3]+lamh*(2-6*ya[0]*ya[0]))*h/8.;
-    S[4][9] = -h*ya[0]*ya[1]/2/xa/xa;
+    S[4][8] = (-2.0*ya[1]*ya[1]/xa/xa+ya[3]*ya[3]+lamh*(2.0-6.0*ya[0]*ya[0]))*h/8.0;
+    S[4][9] = -h*ya[0]*ya[1]/2.0/xa/xa;
     S[4][10] = 0;
-    S[4][11] = h*ya[0]*ya[3]/4;
-    S[4][12] = h/xa+1;
+    S[4][11] = h*ya[0]*ya[3]/4.0;
+    S[4][12] = h/xa+1.0;
     S[4][13] = 0;
     S[4][14] = 0;
     S[4][15] = 0;
 
-    S[4][relax_param.k_coeff] = dy[4] + h*ya[0]*(2*lamh-2*lamh*ya[0]*ya[0]+ya[3]*ya[3])/4 + 2*h*ya[4]/xa - h*ya[0]*ya[1]*ya[1]/2/xa/xa;
+    S[4][relax_param.k_coeff] = dy[4] + h*ya[0]*(2.0*lamh-2.0*lamh*ya[0]*ya[0]+ya[3]*ya[3])/4.0 + 2.0*h*ya[4]/xa - h*ya[0]*ya[1]*ya[1]/2.0/xa/xa;
 
-    S[5][0] = -g2*h*ya[0]*ya[1]/4;
-    S[5][1] = -(g2*xa*xa*ya[0]*ya[0]+12*ya[1]*ya[1]-4*xa*xa*ya[2]*ya[2]-4)*h/8/xa/xa;
+    S[5][0] = -g2*h*ya[0]*ya[1]/4.0;
+    S[5][1] = -(g2*xa*xa*ya[0]*ya[0]+12.0*ya[1]*ya[1]-4.0*xa*xa*ya[2]*ya[2]-4.0)*h/8.0/xa/xa;
     S[5][2] = h*ya[1]*ya[2];
     S[5][3] = 0;
     S[5][4] = 0;
-    S[5][5] = -1;
+    S[5][5] = -1.0;
     S[5][6] = 0;
     S[5][7] = 0;
-    S[5][8] = -g2*h*ya[0]*ya[1]/4;
-    S[5][9] = -(g2*xa*xa*ya[0]*ya[0]+12*ya[1]*ya[1]-4*xa*xa*ya[2]*ya[2]-4)*h/8/xa/xa;
+    S[5][8] = -g2*h*ya[0]*ya[1]/4.0;
+    S[5][9] = -(g2*xa*xa*ya[0]*ya[0]+12.0*ya[1]*ya[1]-4.0*xa*xa*ya[2]*ya[2]-4.0)*h/8.0/xa/xa;
     S[5][10] = h*ya[1]*ya[2];
     S[5][11] = 0;
     S[5][12] = 0;
@@ -299,46 +303,46 @@ void CMMonopoleSolver::SetODE_Body(const Relaxation_Param relax_param, VVD &S)
     S[5][14] = 0;
     S[5][15] = 0;
 
-    S[5][relax_param.k_coeff] = dy[5] - h*ya[1]*(g2*xa*xa*ya[0]*ya[0]-4*xa*xa*ya[2]*ya[2]+4*ya[1]*ya[1]-4)/4/xa/xa;
+    S[5][relax_param.k_coeff] = dy[5] - h*ya[1]*(g2*xa*xa*ya[0]*ya[0]-4.0*xa*xa*ya[2]*ya[2]+4.0*ya[1]*ya[1]-4.0)/4.0/xa/xa;
 
-    S[6][0] = -g2*h*ya[0]*ya[3]/4;
-    S[6][1] = -2*h*ya[1]*ya[2]/xa/xa;
+    S[6][0] = -g2*h*ya[0]*ya[3]/4.0;
+    S[6][1] = -2.0*h*ya[1]*ya[2]/xa/xa;
     S[6][2] = -h*ya[1]*ya[1]/xa/xa;
-    S[6][3] = -g2*h*ya[0]*ya[0]/8;
+    S[6][3] = -g2*h*ya[0]*ya[0]/8.0;
     S[6][4] = 0;
     S[6][5] = 0;
-    S[6][6] = h/xa-1;
+    S[6][6] = h/xa-1.0;
     S[6][7] = 0;
-    S[6][8] = -g2*h*ya[0]*ya[3]/4;
-    S[6][9] = -2*h*ya[1]*ya[2]/xa/xa;
+    S[6][8] = -g2*h*ya[0]*ya[3]/4.0;
+    S[6][9] = -2.0*h*ya[1]*ya[2]/xa/xa;
     S[6][10] = -h*ya[1]*ya[1]/xa/xa;
-    S[6][11] = -g2*h*ya[0]*ya[0]/8;
+    S[6][11] = -g2*h*ya[0]*ya[0]/8.0;
     S[6][12] = 0;
     S[6][13] = 0;
-    S[6][14] = h/xa+1;
+    S[6][14] = h/xa+1.0;
     S[6][15] = 0;
 
-    S[6][relax_param.k_coeff] = dy[6] - (xa*(g2*xa*ya[0]*ya[0]*ya[3]-8*ya[6])+8*ya[2]*ya[1]*ya[1])*h/4/xa/xa;
+    S[6][relax_param.k_coeff] = dy[6] - (xa*(g2*xa*ya[0]*ya[0]*ya[3]-8.0*ya[6])+8.0*ya[2]*ya[1]*ya[1])*h/4.0/xa/xa;
     
 
-    S[7][0] = -gpp2*h*ya[0]*ya[3]/4;
-    S[7][1] = -2*h*ya[1]*ya[2]/xa/xa;
+    S[7][0] = -gpp2*h*ya[0]*ya[3]/4.0;
+    S[7][1] = -2.0*h*ya[1]*ya[2]/xa/xa;
     S[7][2] = -h*ya[1]*ya[1]/xa/xa;
-    S[7][3] = -gpp2*h*ya[0]*ya[0]/8;
+    S[7][3] = -gpp2*h*ya[0]*ya[0]/8.0;
     S[7][4] = 0;
     S[7][5] = 0;
     S[7][6] = 0;
-    S[7][7] = h/xa-1;
-    S[7][8] = -gpp2*h*ya[0]*ya[3]/4;
-    S[7][9] = -2*h*ya[1]*ya[2]/xa/xa;
+    S[7][7] = h/xa-1.0;
+    S[7][8] = -gpp2*h*ya[0]*ya[3]/4.0;
+    S[7][9] = -2.0*h*ya[1]*ya[2]/xa/xa;
     S[7][10] = -h*ya[1]*ya[1]/xa/xa;
-    S[7][11] = -gpp2*h*ya[0]*ya[0]/8;
+    S[7][11] = -gpp2*h*ya[0]*ya[0]/8.0;
     S[7][12] = 0;
     S[7][13] = 0;
     S[7][14] = 0;
-    S[7][15] = h/xa+1;
+    S[7][15] = h/xa+1.0;
 
-    S[7][relax_param.k_coeff] = dy[7] - (xa*(gpp2*xa*ya[0]*ya[0]*ya[3]-8*ya[7])+8*ya[2]*ya[1]*ya[1])*h/4/xa/xa;
+    S[7][relax_param.k_coeff] = dy[7] - (xa*(gpp2*xa*ya[0]*ya[0]*ya[3]-8.0*ya[7])+8.0*ya[2]*ya[1]*ya[1])*h/4.0/xa/xa;
 }
 
 void CMMonopoleSolver::PrintSolution()
