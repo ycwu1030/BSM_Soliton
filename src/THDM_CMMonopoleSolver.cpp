@@ -370,7 +370,7 @@ VD THDMCMMSolver::GetKAIntegrand()
         f = _Y[i][2];
         A = _Y[i][3]*rho0;
         df = _Y[i][7]*rho0;
-        KAIntegrand[i] = A*A*f*f + df*df + (f-1)*(f-1)/2/r/r;
+        KAIntegrand[i] = A*A*f*f + df*df + (f*f-1)*(f*f-1)/2/r/r;
     }
     
     return KAIntegrand*4.0*Pi/g2;

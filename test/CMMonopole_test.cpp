@@ -17,8 +17,8 @@ int main(int argc, char const *argv[])
     VD right = {1,0,A0/rho0,0};
 
     solver.SetBoundary(left,right);
-    solver.SetMeshPoints(200);
-    solver.SetXRange(0.5,50);
+    solver.SetMeshPoints(500);
+    solver.SetXRange(0.8,50);
 
     VD X;
     VVD Y;
@@ -31,6 +31,14 @@ int main(int argc, char const *argv[])
     solver.SetMHL(125.0);
     good = solver.Solve(X,Y);
     solver.DumpSolution("CMMonopole_sol_ms125.dat");
+    double KA,KB,KPhi,VPhi;
+    solver.GetEnergy(KA,KPhi,VPhi,KB);
+    cout<<"The Energy is: "<<endl;
+    cout<<"KA: "<<KA<<endl;
+    cout<<"KB: "<<KB<<endl;
+    cout<<"KPhi: "<<KPhi<<endl;
+    cout<<"VPhi: "<<VPhi<<endl;
+    cout<<"Energy total: "<<KA+KPhi+VPhi+KB<<endl;
 
     solver.SetMHL(1000.0);
     good = solver.Solve(X,Y);
@@ -46,8 +54,8 @@ int main(int argc, char const *argv[])
     VD right0 = {1,0,A0/rho0,0};
 
     solver.SetBoundary(left0,right0);
-    solver.SetMeshPoints(200);
-    solver.SetXRange(0.5,50);
+    solver.SetMeshPoints(500);
+    solver.SetXRange(0.3,50);
 
     solver.SetMHL(10.0);
     good = solver.Solve(X,Y);
@@ -56,6 +64,13 @@ int main(int argc, char const *argv[])
     solver.SetMHL(125.0);
     good = solver.Solve(X,Y);
     solver.DumpSolution("CMMonopole_sol_ms125_b00.dat");
+    solver.GetEnergy(KA,KPhi,VPhi,KB);
+    cout<<"The Energy is: "<<endl;
+    cout<<"KA: "<<KA<<endl;
+    cout<<"KB: "<<KB<<endl;
+    cout<<"KPhi: "<<KPhi<<endl;
+    cout<<"VPhi: "<<VPhi<<endl;
+    cout<<"Energy total: "<<KA+KPhi+VPhi+KB<<endl;
 
     solver.SetMHL(1000.0);
     good = solver.Solve(X,Y);

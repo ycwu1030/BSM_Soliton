@@ -43,7 +43,7 @@ CMMonopoleSolver::CMMonopoleSolver(VD Left_Bound, VD Right_Bound, int mesh_point
 void CMMonopoleSolver::SetMHL(double MS)
 {
     mS = MS;
-    lamh = mS*mS/2.0/vev/vev;
+    lamh = mS*mS/vev/vev;
     g2 = pow(g_weak,2);
     gpp2 = pow(g_weak,2)+pow(gp_hyper,2);
 }
@@ -301,7 +301,7 @@ void CMMonopoleSolver::DumpSolution(string filename)
     ofstream output(filename.c_str());
     // output<<"The Solution is:"<<endl;
     output<<"x\t";
-    for (size_t i = 0; i < _N_Fields; i++)
+    for (size_t i = 0; i < _N_Fields*2; i++)
     {
         output<<"y_"<<i<<"\t";
     }
@@ -310,10 +310,64 @@ void CMMonopoleSolver::DumpSolution(string filename)
     for (size_t i = 0; i < _X.size(); i++)
     {
         output<<_X[i]<<"\t";
-        for (size_t j = 0; j < _N_Fields; j++)
+        for (size_t j = 0; j < _N_Fields*2; j++)
         {
             output<<_Y[i][j]<<"\t";
         }
         output<<endl;
     }
+}
+VD CMMonopoleSolver::GetKAIntegrand()
+{
+    // ! 0: rho/rho0, 1: f, 2: A/rho0, 3: Z/rho0
+    // ! 4: drho/dr/rho0^2, 5: df/dr/rho0, 6: dA/dr/rho0^2, 7: dZ/dr/rho0^2
+    // ! X = r*rho0
+    VD KAIntegrand(_X.size());
+    double rho0 = vev;
+    double rho, f, A, drho, df, r;
+    for (int i = 0; i < _X.size(); i++)
+    {
+        r = _X[i]/rho0;
+        f = _Y[i][1];
+        A = _Y[i][2]*rho0;
+        df = _Y[i][5]*rho0;
+        A = 0;
+        KAIntegrand[i] = A*A*f*f + df*df + (f*f-1)*(f*f-1)/2/r/r;
+    }
+    
+    return KAIntegrand*4.0*Pi/g2;
+}
+VD CMMonopoleSolver::GetKPhiIntegrand()
+{
+    VD KPhiIntegrand(_X.size());
+    double rho0 = vev;
+    double rho, f, A, drho, df, r;
+    for (int i = 0; i < _X.size(); i++)
+    {
+        r = _X[i]/rho0;
+        drho = _Y[i][4]*rho0*rho0;
+        KPhiIntegrand[i] = pow(r*drho,2);
+    }
+    return KPhiIntegrand*2.0*Pi;
+}
+VD CMMonopoleSolver::GetVPhiIntegrand()
+{
+    VD VPhiIntegrand(_X.size());
+    double rho0 = vev;
+    double rho, f, A, drho, df, r;
+    for (int i = 0; i < _X.size(); i++)
+    {
+        r = _X[i]/rho0;
+        rho = _Y[i][0]*rho0;
+        VPhiIntegrand[i] = r*r*lamh*pow(rho*rho-rho0*rho0,2);
+    }
+    return VPhiIntegrand*Pi/2.0;
+}
+void CMMonopoleSolver::GetEnergy(double &KA, double &KPhi, double &VPhi, double &KB)
+{
+    double rho0 = vev;
+    KA = Simpson(_X/rho0,GetKAIntegrand());
+    KPhi = Simpson(_X/rho0,GetKPhiIntegrand());
+    VPhi = Simpson(_X/rho0,GetVPhiIntegrand());
+    KB = KPhi + 3*VPhi - KA;
 }
