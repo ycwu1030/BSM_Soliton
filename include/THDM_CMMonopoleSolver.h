@@ -31,6 +31,11 @@ private:
     void SetODE_Body(const Relaxation_Param relax_param, VVD &S);
     void SetInitial();
 
+    // * Get Energy 
+    VD GetKAIntegrand();
+    VD GetKPhiIntegrand();
+    VD GetVPhiIntegrand();
+
 public:
     
     THDMCMMSolver(int mesh_points=400);
@@ -45,6 +50,7 @@ public:
 
     void SetODE(const Relaxation_Param relax_param, VVD &S); // Used by ODE Solver, not for users.
 
+    void GetEnergy(double &KA, double &KPhi, double &VPhi, double &KB);
     void PrintSolution();
     void DumpSolution(std::string filename);
 };

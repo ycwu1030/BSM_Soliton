@@ -355,3 +355,59 @@ void THDMCMMSolver::DumpSolution(string filename)
         output<<endl;
     }
 }
+
+VD THDMCMMSolver::GetKAIntegrand()
+{
+    // ! 0: rho1/rho0, 1: rho2/rho0, 2: f, 3: A/rho0, 4: Z/rho0
+    // ! 5: drho1/dr/rho0^2, 6: drho2/dr/rho0^2, 7: df/dr/rho0, 8: dA/dr/rho0^2, 9: dZ/dr/rho0^2
+    // ! X = r*rho0
+    VD KAIntegrand(_X.size());
+    double rho0 = _vev;
+    double rho1, rho2, f, A, drho1, drho2, df, r;
+    for (int i = 0; i < _X.size(); i++)
+    {
+        r = _X[i]/rho0;
+        f = _Y[i][2];
+        A = _Y[i][3]*rho0;
+        df = _Y[i][7]*rho0;
+        KAIntegrand[i] = A*A*f*f + df*df + (f-1)*(f-1)/2/r/r;
+    }
+    
+    return KAIntegrand*4.0*Pi/g2;
+}
+VD THDMCMMSolver::GetKPhiIntegrand()
+{
+    VD KPhiIntegrand(_X.size());
+    double rho0 = _vev;
+    double rho1, rho2, f, A, drho1, drho2, df, r;
+    for (int i = 0; i < _X.size(); i++)
+    {
+        r = _X[i]/rho0;
+        drho1 = _Y[i][5]*rho0*rho0;
+        drho2 = _Y[i][6]*rho0*rho0;
+        KPhiIntegrand[i] = pow(r*drho1,2) + pow(r*drho2,2);
+    }
+    return KPhiIntegrand*2.0*Pi;
+}
+VD THDMCMMSolver::GetVPhiIntegrand()
+{
+    VD VPhiIntegrand(_X.size());
+    double rho0 = _vev;
+    double rho1, rho2, f, A, drho1, drho2, df, r;
+    for (int i = 0; i < _X.size(); i++)
+    {
+        r = _X[i]/rho0;
+        rho1 = _Y[i][0]*rho0;
+        rho2 = _Y[i][1]*rho0;
+        VPhiIntegrand[i] = r*r*Vtotal({rho1,rho2});
+    }
+    return VPhiIntegrand*4.0*Pi;
+}
+void THDMCMMSolver::GetEnergy(double &KA, double &KPhi, double &VPhi, double &KB)
+{
+    double rho0 = _vev;
+    KA = Simpson(_X/rho0,GetKAIntegrand());
+    KPhi = Simpson(_X/rho0,GetKPhiIntegrand());
+    VPhi = Simpson(_X/rho0,GetVPhiIntegrand());
+    KB = KPhi + 3*VPhi - KA;
+}
