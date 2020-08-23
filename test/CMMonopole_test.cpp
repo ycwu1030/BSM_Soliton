@@ -3,6 +3,34 @@
 #include <cmath>
 
 using namespace std;
+void RunSolver(CMMonopoleSolver &sol, double mh, double xmin, double xmax, bool print_energy=false, bool b00=false)
+{
+    sol.SetXRange(xmin,xmax);
+    sol.SetMHL(mh);
+    VD X; VVD Y;
+    bool good = sol.Solve(X,Y);
+    char tmp[200];
+    if (b00)
+    {
+        sprintf(tmp,"CMMonopole_sol_mh%.1f_xmin%.1f_b00.dat",mh,xmin);
+    }
+    else
+    {
+        sprintf(tmp,"CMMonopole_sol_mh%.1f_xmin%.1f.dat",mh,xmin);
+    }
+    sol.DumpSolution(tmp);
+    if (print_energy)
+    {
+        double KA,KB,KPhi,VPhi;
+        sol.GetEnergy(KA,KPhi,VPhi,KB);
+        cout<<"The Energy for mh = "<<mh<<" x_min = "<<xmin<<" is: "<<endl;
+        cout<<"KA: "<<KA<<endl;
+        cout<<"KB: "<<KB<<endl;
+        cout<<"KPhi: "<<KPhi<<endl;
+        cout<<"VPhi: "<<VPhi<<endl;
+        cout<<"Energy total: "<<KA+KPhi+VPhi+KB<<endl;
+    }
+}
 
 int main(int argc, char const *argv[])
 {
@@ -18,152 +46,38 @@ int main(int argc, char const *argv[])
 
     solver.SetBoundary(left,right);
     solver.SetMeshPoints(200);
-    
 
-    VD X;
-    VVD Y;
-    bool good;
-    
-    solver.SetXRange(0.2,50);
-    solver.SetMHL(10.0);
-    good = solver.Solve(X,Y);
-    solver.DumpSolution("CMMonopole_sol_ms10.dat");
+    RunSolver(solver,10,0.2,50);
 
-    solver.SetXRange(0.2,50);
-    solver.SetMHL(125.0);
-    good = solver.Solve(X,Y);
-    solver.DumpSolution("CMMonopole_sol_ms125.dat");
-    solver.DumpSolution("CMMonopole_sol_ms125_min0x2.dat");
-    double KA,KB,KPhi,VPhi;
-    solver.GetEnergy(KA,KPhi,VPhi,KB);
-    cout<<"The Energy for x_min = 0.2 is: "<<endl;
-    cout<<"KA: "<<KA<<endl;
-    cout<<"KB: "<<KB<<endl;
-    cout<<"KPhi: "<<KPhi<<endl;
-    cout<<"VPhi: "<<VPhi<<endl;
-    cout<<"Energy total: "<<KA+KPhi+VPhi+KB<<endl;
+    RunSolver(solver,125,0.2,50,true);
+    RunSolver(solver,125,0.3,50,true);
+    RunSolver(solver,125,0.5,50,true);
+    RunSolver(solver,125,0.8,50,true);
 
-    solver.SetXRange(0.3,50);
-    solver.SetMHL(125.0);
-    good = solver.Solve(X,Y);
-    solver.DumpSolution("CMMonopole_sol_ms125_min0x3.dat");
-    // double KA,KB,KPhi,VPhi;
-    solver.GetEnergy(KA,KPhi,VPhi,KB);
-    cout<<"The Energy for x_min = 0.3 is: "<<endl;
-    cout<<"KA: "<<KA<<endl;
-    cout<<"KB: "<<KB<<endl;
-    cout<<"KPhi: "<<KPhi<<endl;
-    cout<<"VPhi: "<<VPhi<<endl;
-    cout<<"Energy total: "<<KA+KPhi+VPhi+KB<<endl;
+    RunSolver(solver,1000,0.5,50);
 
-    solver.SetXRange(0.5,50);
-    solver.SetMHL(125.0);
-    good = solver.Solve(X,Y);
-    solver.DumpSolution("CMMonopole_sol_ms125_min0x5.dat");
-    // double KA,KB,KPhi,VPhi;
-    solver.GetEnergy(KA,KPhi,VPhi,KB);
-    cout<<"The Energy for x_min = 0.5 is: "<<endl;
-    cout<<"KA: "<<KA<<endl;
-    cout<<"KB: "<<KB<<endl;
-    cout<<"KPhi: "<<KPhi<<endl;
-    cout<<"VPhi: "<<VPhi<<endl;
-    cout<<"Energy total: "<<KA+KPhi+VPhi+KB<<endl;
-
-    solver.SetXRange(0.8,50);
-    solver.SetMHL(125.0);
-    good = solver.Solve(X,Y);
-    solver.DumpSolution("CMMonopole_sol_ms125_min0x8.dat");
-    // double KA,KB,KPhi,VPhi;
-    solver.GetEnergy(KA,KPhi,VPhi,KB);
-    cout<<"The Energy for x_min = 0.8 is: "<<endl;
-    cout<<"KA: "<<KA<<endl;
-    cout<<"KB: "<<KB<<endl;
-    cout<<"KPhi: "<<KPhi<<endl;
-    cout<<"VPhi: "<<VPhi<<endl;
-    cout<<"Energy total: "<<KA+KPhi+VPhi+KB<<endl;
-
-    solver.SetMHL(1000.0);
-    good = solver.Solve(X,Y);
-    solver.DumpSolution("CMMonopole_sol_ms1000.dat");
-
-    solver.SetMHL(10000.0);
     solver.SetMeshPoints(500);
-    solver.SetXRange(0.5,20);
-    good = solver.Solve(X,Y);
-    solver.DumpSolution("CMMonopole_sol_ms10000.dat");
+    RunSolver(solver,10000,0.5,20);
 
+    
     VD left0 = {0,1,0,0};
     VD right0 = {1,0,A0/rho0,0};
-
     solver.SetBoundary(left0,right0);
     solver.SetMeshPoints(400);
 
 
-    solver.SetXRange(0.2,50);
-    solver.SetMHL(10.0);
-    good = solver.Solve(X,Y);
-    solver.DumpSolution("CMMonopole_sol_ms10_b00.dat");
+    RunSolver(solver,10,0.2,50,false,true);
 
-    solver.SetXRange(0.2,50);
-    solver.SetMHL(125.0);
-    good = solver.Solve(X,Y);
-    solver.DumpSolution("CMMonopole_sol_ms125_b00.dat");
-    solver.DumpSolution("CMMonopole_sol_ms125_min0x2_b00.dat");
-    solver.GetEnergy(KA,KPhi,VPhi,KB);
-    cout<<"The Energy for x_min = 0.2 is: "<<endl;
-    cout<<"KA: "<<KA<<endl;
-    cout<<"KB: "<<KB<<endl;
-    cout<<"KPhi: "<<KPhi<<endl;
-    cout<<"VPhi: "<<VPhi<<endl;
-    cout<<"Energy total: "<<KA+KPhi+VPhi+KB<<endl;
+    RunSolver(solver,125,0.2,50,true,true);
+    RunSolver(solver,125,0.3,50,true,true);
+    RunSolver(solver,125,0.5,50,true,true);
+    RunSolver(solver,125,0.8,50,true,true);
 
-    solver.SetXRange(0.3,50);
-    solver.SetMHL(125.0);
-    good = solver.Solve(X,Y);
-    solver.DumpSolution("CMMonopole_sol_ms125_min0x3_b00.dat");
-    // double KA,KB,KPhi,VPhi;
-    solver.GetEnergy(KA,KPhi,VPhi,KB);
-    cout<<"The Energy for x_min = 0.3 is: "<<endl;
-    cout<<"KA: "<<KA<<endl;
-    cout<<"KB: "<<KB<<endl;
-    cout<<"KPhi: "<<KPhi<<endl;
-    cout<<"VPhi: "<<VPhi<<endl;
-    cout<<"Energy total: "<<KA+KPhi+VPhi+KB<<endl;
+    RunSolver(solver,1000,0.5,50,false,true);
 
-    solver.SetXRange(0.5,50);
-    solver.SetMHL(125.0);
-    good = solver.Solve(X,Y);
-    solver.DumpSolution("CMMonopole_sol_ms125_min0x5_b00.dat");
-    // double KA,KB,KPhi,VPhi;
-    solver.GetEnergy(KA,KPhi,VPhi,KB);
-    cout<<"The Energy for x_min = 0.5 is: "<<endl;
-    cout<<"KA: "<<KA<<endl;
-    cout<<"KB: "<<KB<<endl;
-    cout<<"KPhi: "<<KPhi<<endl;
-    cout<<"VPhi: "<<VPhi<<endl;
-    cout<<"Energy total: "<<KA+KPhi+VPhi+KB<<endl;
-
-    solver.SetXRange(0.8,50);
-    solver.SetMHL(125.0);
-    good = solver.Solve(X,Y);
-    solver.DumpSolution("CMMonopole_sol_ms125_min0x8_b00.dat");
-    // double KA,KB,KPhi,VPhi;
-    solver.GetEnergy(KA,KPhi,VPhi,KB);
-    cout<<"The Energy for x_min = 0.8 is: "<<endl;
-    cout<<"KA: "<<KA<<endl;
-    cout<<"KB: "<<KB<<endl;
-    cout<<"KPhi: "<<KPhi<<endl;
-    cout<<"VPhi: "<<VPhi<<endl;
-    cout<<"Energy total: "<<KA+KPhi+VPhi+KB<<endl;
-
-    solver.SetMHL(1000.0);
-    good = solver.Solve(X,Y);
-    solver.DumpSolution("CMMonopole_sol_ms1000_b00.dat");
-
-    solver.SetMHL(10000.0);
     solver.SetMeshPoints(500);
-    solver.SetXRange(0.5,20);
-    good = solver.Solve(X,Y);
-    solver.DumpSolution("CMMonopole_sol_ms10000_b00.dat");
+    RunSolver(solver,10000,0.5,20,false,true);
+
+
     return 0;
 }

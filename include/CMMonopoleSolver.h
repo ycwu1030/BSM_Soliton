@@ -31,6 +31,7 @@ private:
     VD _Right_Bound;
 
     // * The two index for asymptotic form for x->0
+    bool _ext_to_zero;
     double _deltam;
     double _deltap;
 
@@ -51,6 +52,7 @@ public:
     ~CMMonopoleSolver(){};
 
     void SetMHL(double MS = 125);
+    void ExtendtoZero(bool ext=true); // Whether using the asymptotic form to handle the left boundary.
     void SetXRange(double x_min=0.1,double x_max=25);
     void SetMeshPoints(int mesh_points = 400) { _mesh_points = mesh_points;};
     void SetBoundary(VD Left_Bound, VD Right_Bound);

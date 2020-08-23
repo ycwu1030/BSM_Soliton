@@ -25,6 +25,7 @@ CMMonopoleSolver::CMMonopoleSolver(int mesh_points)
     SetMeshPoints(mesh_points);
 
     SetMHL();
+    ExtendtoZero();
 }
 
 CMMonopoleSolver::CMMonopoleSolver(VD Left_Bound, VD Right_Bound, int mesh_points)
@@ -40,7 +41,7 @@ CMMonopoleSolver::CMMonopoleSolver(VD Left_Bound, VD Right_Bound, int mesh_point
     SetMeshPoints(mesh_points);
 
     SetMHL();    
-
+    ExtendtoZero();
     SetBoundary(Left_Bound,Right_Bound);
 }
 
@@ -50,6 +51,11 @@ void CMMonopoleSolver::SetMHL(double MS)
     lamh = mS*mS/vev/vev;
     g2 = pow(g_weak,2);
     gpp2 = pow(g_weak,2)+pow(gp_hyper,2);
+}
+
+void CMMonopoleSolver::ExtendtoZero(bool ext)
+{
+    _ext_to_zero = ext;
 }
 
 void CMMonopoleSolver::SetXRange(double xmin, double xmax)
@@ -111,42 +117,50 @@ bool CMMonopoleSolver::Solve(VD &X, VVD &Y)
     VD X_sol = _ODESolver.GetX();
     VVD Y_sol = _ODESolver.GetY();
     
-    // * WE Extend the solution to x->0, using the asymptotic form:
-    // * y0 = c0 x^(deltam)
-    // * y1 = 1 + c1 x^2
-    // * y2 = c2 x
-    // * y3 = y30 + c2 x + c3 x^(2*deltap)
-    // * y4 = deltam c0 x^(deltam-1)
-    // * y5 = 2 c1 x
-    // * y6 = c2
-    // * y7 = c2 + 2 deltap c3 x^(2 deltap - 1)
-    double c0 = Y_sol[0][0]/pow(X_sol[0],_deltam);
-    double c1 = (Y_sol[0][1]-1.0)/pow(X_sol[0],2);
-    double c2 = Y_sol[0][2]/X_sol[0];
-    double c3 = (Y_sol[0][3]-Y_sol[0][2]-_Left_Bound[3])/pow(X_sol[0],2*_deltap);
-
-    VD X_ext = linspace(1e-3,_x_min,50);
-    VVD Y_ext;
-    for (int i = 0; i < X_ext.size(); i++)
+    if (_ext_to_zero)
     {
-        VD Ytmp(_ODE_DOF);
-        Ytmp[0] = c0*pow(X_ext[i],_deltam);
-        Ytmp[1] = 1.0 + c1*pow(X_ext[i],2);
-        Ytmp[2] = c2*X_ext[i];
-        Ytmp[3] = _Left_Bound[3] + c2*X_ext[i] + c3*pow(X_ext[i],2*_deltap);
-        Ytmp[4] = _deltam*c0*pow(X_ext[i],_deltam-1.0);
-        Ytmp[5] = 2.0*c1*X_ext[i];
-        Ytmp[6] = c2;
-        Ytmp[7] = c2 + 2.0*_deltap*c3*pow(X_ext[i],2*_deltap-1);
-        Y_ext.push_back(Ytmp);
+        // * WE Extend the solution to x->0, using the asymptotic form:
+        // * y0 = c0 x^(deltam)
+        // * y1 = 1 + c1 x^2
+        // * y2 = c2 x
+        // * y3 = y30 + c2 x + c3 x^(2*deltap)
+        // * y4 = deltam c0 x^(deltam-1)
+        // * y5 = 2 c1 x
+        // * y6 = c2
+        // * y7 = c2 + 2 deltap c3 x^(2 deltap - 1)
+        double c0 = Y_sol[0][0]/pow(X_sol[0],_deltam);
+        double c1 = (Y_sol[0][1]-1.0)/pow(X_sol[0],2);
+        double c2 = Y_sol[0][2]/X_sol[0];
+        double c3 = (Y_sol[0][3]-Y_sol[0][2]-_Left_Bound[3])/pow(X_sol[0],2*_deltap);
+
+        VD X_ext = linspace(1e-3,_x_min,50);
+        VVD Y_ext;
+        for (int i = 0; i < X_ext.size(); i++)
+        {
+            VD Ytmp(_ODE_DOF);
+            Ytmp[0] = c0*pow(X_ext[i],_deltam);
+            Ytmp[1] = 1.0 + c1*pow(X_ext[i],2);
+            Ytmp[2] = c2*X_ext[i];
+            Ytmp[3] = _Left_Bound[3] + c2*X_ext[i] + c3*pow(X_ext[i],2*_deltap);
+            Ytmp[4] = _deltam*c0*pow(X_ext[i],_deltam-1.0);
+            Ytmp[5] = 2.0*c1*X_ext[i];
+            Ytmp[6] = c2;
+            Ytmp[7] = c2 + 2.0*_deltap*c3*pow(X_ext[i],2*_deltap-1);
+            Y_ext.push_back(Ytmp);
+        }
+        
+        _X = VD(X_ext.begin(),X_ext.end()-1);
+        _Y = VVD(Y_ext.begin(),Y_ext.end()-1);
+
+        _X.insert(_X.end(),X_sol.begin(),X_sol.end());
+        _Y.insert(_Y.end(),Y_sol.begin(),Y_sol.end());
+    }
+    else
+    {
+        _X = X_sol;
+        _Y = Y_sol;
     }
     
-    _X = VD(X_ext.begin(),X_ext.end()-1);
-    _Y = VVD(Y_ext.begin(),Y_ext.end()-1);
-
-    _X.insert(_X.end(),X_sol.begin(),X_sol.end());
-    _Y.insert(_Y.end(),Y_sol.begin(),Y_sol.end());
-
     X = _X;
     Y = _Y;
     return good;
@@ -182,43 +196,49 @@ void CMMonopoleSolver::SetODE_LeftBoundary(const Relaxation_Param relax_param, V
     // ! The left boundaries are fixed using asymptotic form at x->0
     VD y1 = relax_param.y1;
     double x = relax_param.x1;
-    // for (int i = 0; i < _N_Left_Bound; i++)
-    // {
-    //     for (int j = 0; j < _N_Fields; j++)
-    //     {
-    //         if (i==j)
-    //         {
-    //             S[i+_N_Right_Bound][j+_ODE_DOF] = 1;
-    //         }
-    //     }
-    //     S[i+_N_Right_Bound][relax_param.k_coeff] = y1[i] - _Left_Bound[i];
-    // }
-    S[4][8] = _deltam;
-    S[4][12] = -_x_min;
 
-    S[4][relax_param.k_coeff] = _deltam*y1[0] - y1[4]*_x_min;
-    
-    S[5][9] = 2.0;
-    S[5][13] = -_x_min;
+    if (!_ext_to_zero)
+    {
+        for (int i = 0; i < _N_Left_Bound; i++)
+        {
+            for (int j = 0; j < _N_Fields; j++)
+            {
+                if (i==j)
+                {
+                    S[i+_N_Right_Bound][j+_ODE_DOF] = 1;
+                }
+            }
+            S[i+_N_Right_Bound][relax_param.k_coeff] = y1[i] - _Left_Bound[i];
+        }
+    }
+    else{
+        S[4][8] = _deltam;
+        S[4][12] = -_x_min;
 
-    S[5][relax_param.k_coeff] = 2.0*y1[1] - 2.0 - y1[5]*_x_min;
-    
-    S[6][10] = 1.0;
-    S[6][14] = -_x_min;
+        S[4][relax_param.k_coeff] = _deltam*y1[0] - y1[4]*_x_min;
+        
+        S[5][9] = 2.0;
+        S[5][13] = -_x_min;
 
-    S[6][relax_param.k_coeff] = y1[2] - y1[6]*_x_min;
+        S[5][relax_param.k_coeff] = 2.0*y1[1] - 2.0 - y1[5]*_x_min;
+        
+        S[6][10] = 1.0;
+        S[6][14] = -_x_min;
 
-    // S[7][10] = -1.0;
-    // S[7][11] = 1.0;
-    // S[7][14] = _x_min/2.0/_deltap;
-    // S[7][15] = -_x_min/2.0/_deltap;
+        S[6][relax_param.k_coeff] = y1[2] - y1[6]*_x_min;
 
-    // S[7][relax_param.k_coeff] = y1[3] - y1[2] - _Left_Bound[3] - (y1[7] - y1[6])*_x_min/2.0/_deltap;
-    S[7][11] = 1.0;
-    S[7][14] = -_x_min + _x_min/2.0/_deltap;
-    S[7][15] = -_x_min/2.0/_deltap;
+        // S[7][10] = -1.0;
+        // S[7][11] = 1.0;
+        // S[7][14] = _x_min/2.0/_deltap;
+        // S[7][15] = -_x_min/2.0/_deltap;
 
-    S[7][relax_param.k_coeff] = y1[3] - _Left_Bound[3] - y1[6]*_x_min + y1[6]*_x_min/2.0/_deltap - y1[7]*_x_min/2.0/_deltap; 
+        // S[7][relax_param.k_coeff] = y1[3] - y1[2] - _Left_Bound[3] - (y1[7] - y1[6])*_x_min/2.0/_deltap;
+        S[7][11] = 1.0;
+        S[7][14] = -_x_min + _x_min/2.0/_deltap;
+        S[7][15] = -_x_min/2.0/_deltap;
+
+        S[7][relax_param.k_coeff] = y1[3] - _Left_Bound[3] - y1[6]*_x_min + y1[6]*_x_min/2.0/_deltap - y1[7]*_x_min/2.0/_deltap; 
+    }
 }
 
 void CMMonopoleSolver::SetODE_RightBoundary(const Relaxation_Param relax_param, VVD &S)
