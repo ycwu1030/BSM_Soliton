@@ -207,6 +207,7 @@ ostream& operator<<(ostream& out, const VD& s)
 
 double Simpson(VD X, VD Y)
 {
+    // ! https://en.wikipedia.org/wiki/Simpson%27s_rule
     if (X.size() != Y.size())
     {
         cerr<<"In Simpson Integral: The size of X and Y didn't match."<<endl;
@@ -232,7 +233,17 @@ double Simpson(VD X, VD Y)
     }
     if (N%2==0)
     {
-        res += (X[N-1]-X[N-2])*(Y[N-1]+Y[N-2])/2.0;
+        // res += (X[N-1]-X[N-2])*(Y[N-1]+Y[N-2])/2.0;
+        x1 = X[N-3];
+        x2 = X[N-2];
+        x3 = X[N-1];
+        y1 = Y[N-3];
+        y2 = Y[N-2];
+        y3 = Y[N-1];
+
+        res += (x3-x2)*(2*x3+x2-3*x1)/(x3-x1)/6.0*y3;
+        res += (x3-x2)*(x3+2*x2-3*x1)/(x2-x1)/6.0*y2;
+        res += -pow(x3-x2,3)/(x2-x1)/(x3-x1)/6.0*y1;
     }
     
     return res;
