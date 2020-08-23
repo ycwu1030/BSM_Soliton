@@ -20,6 +20,7 @@ public:
     double Getgweak() {return g_weak;}
     double Getghyper() {return gp_hyper;}
     double GetVEV() {return vev;}
+    double GetSW() {return sin(thetaW);}
     
 protected:
     double MW;

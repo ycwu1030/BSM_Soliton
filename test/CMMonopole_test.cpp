@@ -41,7 +41,7 @@ int main(int argc, char const *argv[])
     // cout<<"g: "<<solver.Getgweak()<<endl;
     double A0=mw/2.0;
 
-    VD left = {0,1,0,-A0/rho0};
+    VD left = {0,1,0,-0.2*g};
     VD right = {1,0,A0/rho0,0};
 
     solver.SetBoundary(left,right);
