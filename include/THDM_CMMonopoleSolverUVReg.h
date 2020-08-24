@@ -3,16 +3,13 @@
 
 #include "Relaxation.h"
 #include "Potential.h"
-#include "Basic_Model.h"
+#include "THDM_CPC.h"
 #include <string>
 #include <functional>
 
-class CMMonopoleSolverUV: public SM
+class THDMCMMSolverUV: public THDM_CPC
 {
 private:
-
-    double mS;
-    double lamh;
     double g2;
     double gp2;
     double gpp2;
@@ -45,7 +42,6 @@ private:
     double _beta;
     double _gamma;
 
-
     void SetODE_LeftBoundary(const Relaxation_Param relax_param, VVD &S);
     void SetODE_RightBoundary(const Relaxation_Param relax_param, VVD &S);
     void SetODE_Body(const Relaxation_Param relax_param, VVD &S);
@@ -55,15 +51,17 @@ private:
     VD GetE0Integrand();
     VD GetE1Integrand();
 
+    //* Set EW parameters;
+    void Set_EW_Parameters();
+
 public:
     
-    CMMonopoleSolverUV(int mesh_points=400);
-    CMMonopoleSolverUV(VD Left_Bound, VD Right_Bound, int mesh_points = 400);
-    ~CMMonopoleSolverUV(){};
+    THDMCMMSolverUV(int mesh_points=400);
+    THDMCMMSolverUV(VD Left_Bound, VD Right_Bound, int mesh_points = 400);
+    ~THDMCMMSolverUV(){};
 
-    void SetMHL(double MS = 125); // Set SM model parameters
     void SetUVRegular(double gamma); // 1 + alpha = 1/f0^2/sW^2, 1+beta=1/f0^4/sW^2, f0 is determined from the left boundary
-    void ExtendtoZero(bool ext=true); // Whether using the asymptotic form to handle the left boundary.
+    void ExtendtoZero(bool ext=true){_ext_to_zero = ext;};
     void SetXRange(double x_min=0.1,double x_max=25);
     void SetMeshPoints(int mesh_points = 400) { _mesh_points = mesh_points;};
     void SetBoundary(VD Left_Bound, VD Right_Bound);
