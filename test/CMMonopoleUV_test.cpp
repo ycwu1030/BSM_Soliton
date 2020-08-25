@@ -52,6 +52,13 @@ int main(int argc, char const *argv[])
     solver.SetUVRegular(0.0);
     solver.SetMeshPoints(200);
 
+    solver.ExtendtoZero(false);
+    Eall=RunSolver(solver,125,0.2,50,true,true);
+    Eall=RunSolver(solver,125,0.3,50,true,true);
+    Eall=RunSolver(solver,125,0.5,50,true,true);
+    Eall=RunSolver(solver,125,0.8,50,true,true);
+
+    solver.ExtendtoZero(true);
     Eall=RunSolver(solver,125,0.2,50,true,true);
     Eall=RunSolver(solver,125,0.3,50,true,true);
     Eall=RunSolver(solver,125,0.5,50,true,true);

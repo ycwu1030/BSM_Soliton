@@ -49,6 +49,23 @@ void THDMCMMSolverUV::Set_EW_Parameters()
     gpp2 = pow(g_weak,2)+pow(gp_hyper,2);
     SW2 = pow(sin(thetaW),2);
 }
+void THDMCMMSolverUV::SetUVRegular(double gamma)
+{
+    if (_Left_Bound.size()!=_N_Left_Bound)
+    {
+        cout<<"The Boundary Conditions have not been set! Please set the boundary condition first!"<<endl;
+        _Left_Bound={0,0,1,0,0};
+        _Right_Bound={0.3,0.4,0,0.3,0};
+    }
+    _f0 = _Left_Bound[2];
+    _alpha = 1.0/_f0/_f0/SW2-1.0;
+    _beta = 1.0/_f0/_f0/_f0/_f0/SW2-1.0;
+    _gamma = gamma;
+    _delta1 = (sqrt(1.0+2.0*(1.0+_gamma)*_f0*_f0)-1.0)/2.0;
+    _delta2 = (1.0+sqrt(8.0*_alpha+9.0))/2.0;
+    _delta3 = (sqrt(1.0+8.0*_f0*_f0)-1.0)/2.0;
+    _delta4 = sqrt(1.0+2.0*(1.0+_gamma)*_f0*_f0)+1.0;
+}
 void THDMCMMSolverUV::SetXRange(double xmin, double xmax)
 {
     _x_min = xmin;
@@ -105,9 +122,58 @@ bool THDMCMMSolverUV::Solve(VD &X, VVD &Y)
     VD scales(_ODE_DOF,1);
     _ODESolver.SetScales(scales);
     bool good = _ODESolver.SOLVDE();
-    _X = _ODESolver.GetX();
-    _Y = _ODESolver.GetY();
+    VD X_sol = _ODESolver.GetX();
+    VVD Y_sol = _ODESolver.GetY();
     
+    if (_ext_to_zero)
+    {
+        // * WE Extend the solution to x->0, using the asymptotic form:
+        // * y0 = c0 x^(delta1)
+        // * y1 = c1 x^(delta1)
+        // * y2 = f0(1 + c2 x^(delta2))
+        // * y3 = c3 x^(delta3)
+        // * y4 = y40 + c3 x^(delta3) + c4 x^(delta4)
+        // * y5 = delta1 c0 x^(delta1-1)
+        // * y6 = delta1 c1 x^(delta1-1)
+        // * y7 = f0*c2*delta2*x^(delta2-1)
+        // * y8 = c3 delta3 x^(delta3-1)
+        // * y9 = c3 delta3 x^(delta3-1) + delta4 c4 x^(delta4 - 1)
+        double c0 = Y_sol[0][0]/pow(X_sol[0],_delta1);
+        double c1 = Y_sol[0][1]/pow(X_sol[0],_delta1);
+        double c2 = (Y_sol[0][2]/_f0-1.0)/pow(X_sol[0],_delta2);
+        double c3 = Y_sol[0][3]/pow(X_sol[0],_delta3);
+        double c4 = (Y_sol[0][4]-Y_sol[0][3]-_Left_Bound[4])/pow(X_sol[0],_delta4);
+
+        VD X_ext = linspace(1e-3,_x_min,50);
+        VVD Y_ext;
+        for (int i = 0; i < X_ext.size(); i++)
+        {
+            VD Ytmp(_ODE_DOF);
+            Ytmp[0] = c0*pow(X_ext[i],_delta1);
+            Ytmp[1] = c1*pow(X_ext[i],_delta1);
+            Ytmp[2] = _f0*(1.0 + c2*pow(X_ext[i],_delta2));
+            Ytmp[3] = c3*pow(X_ext[i],_delta3);
+            Ytmp[4] = _Left_Bound[4] + Ytmp[3] + c4*pow(X_ext[i],_delta4);
+            Ytmp[5] = _delta1*c0*pow(X_ext[i],_delta1-1.0);
+            Ytmp[6] = _delta1*c1*pow(X_ext[i],_delta1-1.0);
+            Ytmp[7] = _f0*_delta2*c2*pow(X_ext[i],_delta2-1.0);
+            Ytmp[8] = c3*_delta3*pow(X_ext[i],_delta3-1.0);
+            Ytmp[9] = Ytmp[8] + _delta4*c4*pow(X_ext[i],_delta4-1);
+            Y_ext.push_back(Ytmp);
+        }
+        
+        _X = VD(X_ext.begin(),X_ext.end()-1);
+        _Y = VVD(Y_ext.begin(),Y_ext.end()-1);
+
+        _X.insert(_X.end(),X_sol.begin(),X_sol.end());
+        _Y.insert(_Y.end(),Y_sol.begin(),Y_sol.end());
+    }
+    else
+    {
+        _X = X_sol;
+        _Y = Y_sol;
+    }
+
     X = _X;
     Y = _Y;
     return good;
@@ -141,17 +207,46 @@ void THDMCMMSolverUV::SetODE(const Relaxation_Param relax_param, VVD &S)
 void THDMCMMSolverUV::SetODE_LeftBoundary(const Relaxation_Param relax_param, VVD &S)
 {
     VD y1 = relax_param.y1;
-    for (int i = 0; i < _N_Left_Bound; i++)
+
+    if (!_ext_to_zero)
     {
-        for (int j = 0; j < _N_Fields; j++)
+        for (int i = 0; i < _N_Left_Bound; i++)
         {
-            if (i==j)
+            for (int j = 0; j < _N_Fields; j++)
             {
-                S[i+_N_Right_Bound][j+_ODE_DOF] = 1;
+                if (i==j)
+                {
+                    S[i+_N_Right_Bound][j+_ODE_DOF] = 1;
+                }
             }
+            S[i+_N_Right_Bound][relax_param.k_coeff] = y1[i] - _Left_Bound[i];
         }
-        S[i+_N_Right_Bound][relax_param.k_coeff] = y1[i] - _Left_Bound[i];
     }
+    else
+    {
+        S[5][10] = _delta1;
+        S[5][15] = -_x_min;
+        S[5][relax_param.k_coeff] = _delta1*y1[0]-_x_min*y1[5];
+
+        S[6][11] = _delta1;
+        S[6][16] = -_x_min;
+        S[6][relax_param.k_coeff] = _delta1*y1[1]-_x_min*y1[6];
+
+        S[7][12] = _delta2;
+        S[7][17] = -_x_min;
+        S[7][relax_param.k_coeff] = _delta2*y1[2] - _delta2*_f0 - _x_min*y1[7];
+
+        S[8][13] = _delta3;
+        S[8][18] = -_x_min;
+        S[8][relax_param.k_coeff] = _delta3*y1[3] - _x_min*y1[8];
+
+        S[9][14] = 1.0;
+        S[9][18] = -_x_min/_delta3 + _x_min/_delta4;
+        S[9][19] = -_x_min/_delta4;
+
+        S[9][relax_param.k_coeff] = y1[4] - _Left_Bound[4] - y1[8]*_x_min/_delta3 + y1[8]*_x_min/_delta4 - y1[9]*_x_min/_delta4;
+    }
+    
 }
 
 void THDMCMMSolverUV::SetODE_RightBoundary(const Relaxation_Param relax_param, VVD &S)
@@ -372,7 +467,7 @@ VD THDMCMMSolverUV::GetE0Integrand()
     for (int i = 0; i < _X.size(); i++)
     {
         r = _X[i]/rho0;
-        f = _Y[i][1];
+        f = _Y[i][2];
         E0Integrand[i] = pow(f*f-_f0*_f0,2)/pow(_f0,4)/SW2/r/r;
     }
     

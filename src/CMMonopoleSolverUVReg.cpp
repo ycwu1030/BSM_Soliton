@@ -65,7 +65,7 @@ void CMMonopoleSolverUV::SetUVRegular(double gamma)
     _delta1 = (sqrt(1.0+2.0*(1.0+_gamma)*_f0*_f0)-1.0)/2.0;
     _delta2 = (1.0+sqrt(8.0*_alpha+9.0))/2.0;
     _delta3 = (sqrt(1.0+8.0*_f0*_f0)-1.0)/2.0;
-    _delta4 = sqrt(1.0+2.0*_f0*_f0)+1.0;
+    _delta4 = sqrt(1.0+2.0*(1.0+_gamma)*_f0*_f0)+1.0;
 
 }
 void CMMonopoleSolverUV::ExtendtoZero(bool ext)
