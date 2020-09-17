@@ -14,15 +14,17 @@ int main(int argc, char const *argv[])
     // cout<<"g: "<<solver.Getgweak()<<endl;
     double A0=mw/2.0;
     
-    double beta = atan(1.0);//atan(2.0);
-    double cba = 0.0;//0.1;
+    double beta = atan(2.0);//atan(2.0);
+    double cba = 0.01;//0.1;
     double alpha = beta - acos(cba);
-    double mhh = 400;
+    double mhh = 100;
     double mha = 400;//450;
     double mpm = 400;//500;
-    double m122 = 40000;//80000;
+    double m122 = 6000;//80000;
 
     solver.Set_Physical_Parameters(beta,alpha,mhh,mha,mpm,m122);
+    solver.PrintLocalMinima();
+    solver.PrintParameters();
 
     VD left = {0,0,1.0/sw,0,-0.2*g};
     VD right = {cos(beta),sin(beta),0,A0/rho0,0};
