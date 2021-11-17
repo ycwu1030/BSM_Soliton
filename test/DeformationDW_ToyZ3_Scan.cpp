@@ -25,8 +25,11 @@ int main(int argc, char const *argv[]) {
         VVD pts_init;
         VD left = model.GetLocalMinima(0);
         VD right = model.GetLocalMinima(1);
-        pts_init.push_back(left);
-        pts_init.push_back(right);
+        double v1 = sqrt(r * r + 1) - r;
+        double v2 = sqrt(r * r + 1) + r;
+        pts_init.push_back({-v2, 0});
+        pts_init.push_back({-v1 / 2, -v1 * sqrt(3) / 2});
+        pts_init.push_back({v2 / 2, -v2 * sqrt(3) / 2});
         KinknD sol = fullKink(pts_init, vtol, dvtol);
         char fname[200];
         sprintf(fname, "ToyZ3_Kink/ToyZ3_%d.dat", rid);
