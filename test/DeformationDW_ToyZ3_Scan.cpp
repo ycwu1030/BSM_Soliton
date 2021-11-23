@@ -18,7 +18,7 @@ int main(int argc, char const *argv[]) {
     dVnD dvtol = [&](VD field, double scale) { return model.dVtotal(field, scale); };
 
     ofstream out("ToyZ3_Scan.dat");
-    out << "r tension" << endl;
+    out << "r tension width" << endl;
     for (int rid = 1; rid <= 50; rid += 1) {
         double r = rid / 10.0;
         model.Set_Potential_Parameters(r);
@@ -34,7 +34,7 @@ int main(int argc, char const *argv[]) {
         char fname[200];
         sprintf(fname, "ToyZ3_Kink/ToyZ3_%d.dat", rid);
         model.DumpFullSolution(sol.R, sol.Phi, fname);
-        out << r << " " << model.GetTotalEnergy(sol.R, sol.Phi) << endl;
+        out << r << " " << model.GetTotalEnergy(sol.R, sol.Phi) << " " << model.GetWallWidth(sol.R, sol.Phi) << endl;
     }
 
     return 0;
