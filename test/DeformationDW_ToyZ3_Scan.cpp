@@ -19,23 +19,30 @@ int main(int argc, char const *argv[]) {
 
     ofstream out("ToyZ3_Scan.dat");
     out << "r tension width" << endl;
-    for (int rid = 1; rid <= 50; rid += 1) {
-        double r = rid / 10.0;
+    for (int rid = -30; rid <= 10; rid += 1) {
+        double r = pow(10, rid / 10.0);
         model.Set_Potential_Parameters(r);
         VVD pts_init;
         VD left = model.GetLocalMinima(0);
         VD right = model.GetLocalMinima(1);
-        double v1 = sqrt(r * r + 1) - r;
-        double v2 = sqrt(r * r + 1) + r;
-        pts_init.push_back({-v2, 0});
-        pts_init.push_back({-v1 / 2, -v1 * sqrt(3) / 2});
-        pts_init.push_back({v2 / 2, -v2 * sqrt(3) / 2});
+        pts_init.push_back(left);
+        pts_init.push_back(right);
         KinknD sol = fullKink(pts_init, vtol, dvtol);
         char fname[200];
         sprintf(fname, "ToyZ3_Kink/ToyZ3_%d.dat", rid);
         model.DumpFullSolution(sol.R, sol.Phi, fname);
         out << r << " " << model.GetTotalEnergy(sol.R, sol.Phi) << " " << model.GetWallWidth(sol.R, sol.Phi) << endl;
     }
-
+    double r = 3.0 / 4.0;
+    model.Set_Potential_Parameters(r);
+    VVD pts_init;
+    VD left = model.GetLocalMinima(0);
+    VD right = model.GetLocalMinima(1);
+    pts_init.push_back(left);
+    pts_init.push_back(right);
+    KinknD sol = fullKink(pts_init, vtol, dvtol);
+    char fname[200];
+    sprintf(fname, "ToyZ3_Kink/ToyZ3_3over4.dat");
+    model.DumpFullSolution(sol.R, sol.Phi, fname);
     return 0;
 }

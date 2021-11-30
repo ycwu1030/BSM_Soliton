@@ -38,7 +38,7 @@ double ToyZ3::Vtotal(VD field_values, double scale) {
     double p2 = field_values[1];
     double pt = p1 * p1 + p2 * p2;
     double p3 = p1 * p1 * p1 - 3 * p1 * p2 * p2;
-    double vtot = -pt / 2 + pt * pt / 4 + 2 * r / 3 * p3;
+    double vtot = -pt / 2 + pt * pt / 4 - 2 * r / 3 * p3;
     return vtot / pow(scale, 4);
 }
 
@@ -47,8 +47,8 @@ VD ToyZ3::dVtotal(VD field_values, double scale) {
     double p1 = field_values[0];
     double p2 = field_values[1];
     double pt = p1 * p1 + p2 * p2;
-    res[0] = 2 * r * (p1 * p1 - p2 * p2) + p1 * pt - p1;
-    res[1] = p2 * (pt - 4 * r * p1 - 1);
+    res[0] = -2 * r * (p1 * p1 - p2 * p2) + p1 * pt - p1;
+    res[1] = p2 * (pt + 4 * r * p1 - 1);
     return res / pow(scale, 3);
 }
 
@@ -56,10 +56,10 @@ VVD ToyZ3::d2Vtotal(VD field_values, double scale) {
     VVD res(2, VD(2));
     double p1 = field_values[0];
     double p2 = field_values[1];
-    res[0][0] = 4 * r * p1 + 3 * p1 * p1 + p2 * p2 - 1;
-    res[0][1] = 2 * p2 * (p1 - 2 * r);
+    res[0][0] = -4 * r * p1 + 3 * p1 * p1 + p2 * p2 - 1;
+    res[0][1] = 2 * p2 * (p1 + 2 * r);
     res[1][0] = res[0][1];
-    res[1][1] = -4 * r * p1 + p1 * p1 + 3 * p2 * p2 - 1;
+    res[1][1] = 4 * r * p1 + p1 * p1 + 3 * p2 * p2 - 1;
 
     return res / pow(scale, 2);
 }
@@ -78,8 +78,8 @@ void ToyZ3::FindLocalMinima() {
     _localExtreme.push_back({0, 0});
     AppendLocalExtreme();
 
-    double r1 = sqrt(r * r + 1) - r;
-    double r2 = -(sqrt(r * r + 1) + r);
+    double r1 = sqrt(r * r + 1) + r;
+    double r2 = -(sqrt(r * r + 1) - r);
     for (int i = 0; i < 3; i++) {
         double th = i * 2.0 * M_PI / 3.0;
 
