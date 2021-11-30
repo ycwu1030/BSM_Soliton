@@ -6,6 +6,7 @@
 class ToyZ4 : public Basic_Model {
 protected:
     double r;
+    double beta;
 
     double _v1global;
     double _v2global;
