@@ -1,9 +1,43 @@
-#ifndef BASIC_MODEL_H
-#define BASIC_MODEL_H
+#ifndef _BASIC_MODEL_H_
+#define _BASIC_MODEL_H_
 
 #include "Constants.h"
 #include "Potential.h"
 #include "VTypes.h"
+
+namespace BSM_Soliton {
+class SM {
+public:
+    SM();
+    virtual ~SM(){};
+
+    double Get_MZ() const { return MZ; }
+    double Get_MZ2() const { return MZ2; }
+    double Get_MW() const { return MW; }
+    double Get_MW2() const { return MW2; }
+    double Get_MT() const { return MT; }
+
+    double Get_theta_w() const { return theta_w; }
+    double Get_sin_theta_w() const { return sin(theta_w); }
+
+    double Get_g_weak() const { return g_weak; }
+    double Get_g_hyper() const { return g_hyper; }
+
+    double Get_vev() const { return vev; }
+
+protected:
+    double MW;
+    double MW2;
+    double theta_w;
+    double alpha_EW;
+    double vev;
+    double ee;
+    double g_weak;
+    double g_hyper;
+    double yt;
+};
+
+}  // namespace BSM_Soliton
 
 class SM {
 public:
