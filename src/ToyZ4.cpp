@@ -7,9 +7,10 @@ using namespace std;
 
 ToyZ4::ToyZ4() : Basic_Model(2) {}
 
-void ToyZ4::Set_Potential_Parameters(double beta_) {
+void ToyZ4::Set_Potential_Parameters(double beta_, double delta_beta_) {
     beta = beta_;
-    r = 2 * beta / (1 - beta);
+    delta_beta = delta_beta_;
+    r = 2 * beta / delta_beta;
     _Solved = false;
     FindLocalMinima();
 

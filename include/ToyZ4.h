@@ -7,6 +7,7 @@ class ToyZ4 : public Basic_Model {
 protected:
     double r;
     double beta;
+    double delta_beta;  // 1-beta
 
     double _v1global;
     double _v2global;
@@ -16,7 +17,7 @@ public:
     ToyZ4();
     ~ToyZ4(){};
 
-    void Set_Potential_Parameters(double r);
+    void Set_Potential_Parameters(double beta, double delta_betas);
 
     virtual double Vtotal(VD field_values, double scale = 1);
     virtual VD dVtotal(VD field_values, double scale = 1);

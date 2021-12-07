@@ -19,7 +19,7 @@ int main(int argc, char const *argv[]) {
 
     ofstream out("ToyZ3_Scan.dat");
     out << "r tension width" << endl;
-    for (int rid = -30; rid <= 10; rid += 1) {
+    for (int rid = -30; rid <= 40; rid += 1) {
         double r = pow(10, rid / 10.0);
         model.Set_Potential_Parameters(r);
         VVD pts_init;
