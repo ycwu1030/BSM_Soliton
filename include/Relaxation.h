@@ -172,6 +172,7 @@ private:
 
     RelaxationMatrix Relax_S;
     void Reduce_to_Zero(int mesh_id);
+    void Pivot_Elimination(int mesh_id);
 };
 
 }  // namespace BSM_Soliton

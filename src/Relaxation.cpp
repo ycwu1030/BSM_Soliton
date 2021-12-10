@@ -85,8 +85,8 @@ RelaxationStepper::RelaxationStepper(RelaxationODE *fode, int MeshSize)
 
 void Reduce_to_Zero(const unsigned s_row_dim, const unsigned offset, const unsigned s_row_max, const unsigned s_col_beg,
                     const VVD &c, VVD &s) {
-    // * Reduce the left-upper most s_row_max*(s_row_dim-offset) sub-matrix of S to zero according to following
-    // convention;
+    // * Reduce the left-upper most s_row_max*(s_row_dim-offset) sub-matrix of S to zero
+    // * according to following convention;
     // * From
     // *
     // *     offset
@@ -161,89 +161,102 @@ void Gaussian_Elimination_with_Partial_Pivot(const unsigned r_beg, const unsigne
     // *       |
     // *       c_beg
 
-    vector<int> indxr(dim, 0);
-    VD pscl(dim, 0);  // The scale in each row
+    vector<int> row_permutation_index(dim, -1);  // Used to store the perumutation information for rows
+    VD row_scale(dim, 0);                        // The scale in each row
 
-    // Record the biggest element in each row;
-    double big;
+    // Record the biggest element in each row to use as scale for each row;
+
     unsigned ir_beg = r_beg;
     unsigned ir_end = r_beg + dim;
     unsigned ic_beg = c_beg;
     unsigned ic_end = ic_beg + dim;
     unsigned i_coeff = s[0].size();
     for (size_t i = ir_beg; i < ir_end; i++) {
-        big = 0;
+        double largest_in_row = 0;
         for (size_t j = ic_beg; j < ic_end; j++) {
-            if (abs(s[i][j]) > big) {
-                big = abs(s[i][j]);
+            if (abs(s[i][j]) > largest_in_row) {
+                largest_in_row = abs(s[i][j]);
             }
         }
-        if (big == 0) {
+        if (largest_in_row == 0) {
             cout << "Matrix s has one row with all zeros" << endl;
             return;
         }
-        pscl[i - ir_beg] = 1.0 / big;
-        indxr[i - ir_beg] = 0;
+        row_scale[i - ir_beg] = 1.0 / largest_in_row;
+        row_permutation_index[i - ir_beg] = -1;
     }
 
-    double piv;
-    double pivinv;
+    double pivot;
+    double pivot_inverse;
     double dum;
-    int jp;
-    int ipiv, jpiv;
+    int ic_largest;
+    int ir_pivot, ic_pivot;
 
     for (size_t id = 0; id < dim; id++) {
-        piv = 0.0;
+        pivot = 0.0;
+
+        // * Finding the current pivot (the largest element)
         for (size_t i = ir_beg; i < ir_end; i++) {
-            if (indxr[i - ir_beg] == 0) {
-                big = 0.0;
-                for (size_t j = ic_beg; j < ic_end; j++) {
-                    if (abs(s[i][j]) > big) {
-                        jp = j;
-                        big = abs(s[i][j]);
-                    }
-                }
-                if (big * pscl[i - ir_beg] > piv) {
-                    ipiv = i;
-                    jpiv = jp;
-                    piv = big * pscl[i - ir_beg];
+            // * Do not consider the row that already contains pivot
+            if (row_permutation_index[i - ir_beg] >= 0) continue;
+            double largest = 0.0;
+            for (size_t j = ic_beg; j < ic_end; j++) {
+                if (abs(s[i][j]) > largest) {
+                    ic_largest = j;
+                    largest = abs(s[i][j]);
                 }
             }
+            if (largest * row_scale[i - ir_beg] > pivot) {
+                ir_pivot = i;
+                ic_pivot = ic_largest;
+                pivot = largest * row_scale[i - ir_beg];
+            }
         }
-        // cout << id << " " << piv << endl;
-        if (s[ipiv][jpiv] == 0.0) {
+        // * Now current pivot is at (ir_pivot,ic_pivot)
+        if (s[ir_pivot][ic_pivot] == 0.0) {
             cout << "The whole matrix is zero" << endl;
             return;
         }
-        indxr[ipiv - ir_beg] = jpiv;
-        pivinv = 1.0 / s[ipiv][jpiv];
-        for (size_t j = ic_beg; j < i_coeff; j++) {
-            s[ipiv][j] *= pivinv;
+        // * Then this row should become ic_pivot-th row,
+        // * But the ir_pivot and ic_pivot are starting from ir_beg and ic_beg respectively
+        // * We need to compensate that
+        row_permutation_index[ir_pivot - ir_beg] = ic_pivot - ic_beg;
+
+        // * Then rescale the row where the pivot is in, such that pivot will be 1;
+        // * This is specific for relaxation application, so we won't scale the elements before the starting column
+        pivot_inverse = 1.0 / s[ir_pivot][ic_pivot];
+        for (size_t j = ic_beg; j < s[ir_pivot].size(); j++) {
+            s[ir_pivot][j] *= pivot_inverse;
         }
-        s[ipiv][jpiv] = 1.0;
+        // * The pivot is set explicitly to 1
+        s[ir_pivot][ic_pivot] = 1.0;
+
+        // * Then we need to eliminate the elements in the same column as current pivot
+        // * The other elements will change simultaneously
         for (size_t i = ir_beg; i < ir_end; i++) {
-            if (indxr[i - ir_beg] != jpiv) {
-                if (s[i][jpiv]) {
-                    dum = s[i][jpiv];
-                    for (size_t j = ic_beg; j < i_coeff; j++) {
-                        s[i][j] -= dum * s[ipiv][j];
-                    }
-                    s[i][jpiv] = 0.0;
+            // * Do not consider the row where current pivot is
+            if (i == ir_pivot) continue;
+            if (s[i][ic_pivot]) {
+                dum = s[i][ic_pivot];
+                for (size_t j = ic_beg; j < s[i].size(); j++) {
+                    s[i][j] -= dum * s[ir_pivot][j];
                 }
+                s[i][ic_pivot] = 0.0;
             }
         }
     }
-    // jc1
-    int jcoff = -ic_end;
-    int icoff = ir_beg - ic_beg;
-    int irow;
-    int ic_c_coeff = c[0].size();
+
+    // * Now store the part after the identity matrix into c
+    int ic_s_coeff = s[0].size() - 1;
+    int ic_c_coeff = c[0].size() - 1;
     for (size_t i = ir_beg; i < ir_end; i++) {
-        irow = indxr[i - ir_beg] + icoff;
-        for (size_t j = ic_end; j < i_coeff - 1; j++) {
-            c[irow][j + jcoff] = s[i][j];
+        // * the row index in c is determined from row_permutation_index,
+        // * but will be shifted according to ir_beg.
+        int ir_c = row_permutation_index[i - ir_beg] + ir_beg;
+        for (size_t j = ic_end; j < ic_s_coeff; j++) {
+            c[ir_c][j - ic_end] = s[i][j];
         }
-        c[irow][ic_c_coeff - 1] = s[i][i_coeff - 1];
+        c[ir_c][ic_c_coeff] = s[i][ic_s_coeff];
     }
 }
 

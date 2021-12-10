@@ -16,7 +16,7 @@ int main(int argc, char const *argv[]) {
     int dof = 5;
     int n_left = 3;
     {
-        cout << "Test 1" << endl;
+        cout << "Test middle blocks" << endl;
         VVD C{{3, 4, 5}, {1, 2, 7}, {1, 2, 3}, {4, 6, 7}, {5, 8, 2}};
         VVD S{{1, 2, 3, 4, 5, 6, 7, 8, 9, 3, 4},
               {4, 5, 2, 2, 6, 7, 8, 4, 2, 5, 5},
