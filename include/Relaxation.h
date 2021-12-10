@@ -1,6 +1,7 @@
 #ifndef Relaxation_H
 #define Relaxation_H
 
+#include <iostream>
 #include <string>
 
 #include "ODE.h"
@@ -122,6 +123,14 @@ struct MeshPoint {
     VVD dResultdY;
 };
 
+
+
+struct Grid {
+    Grid(int dof, int mesh_size) : Points(mesh_size, MeshPoint(dof)){};
+
+    std::vector<MeshPoint> Points;
+};
+
 class RelaxationODE {
 public:
     RelaxationODE(unsigned dof, unsigned left_boundary_size)
@@ -156,9 +165,13 @@ struct RelaxationMatrix {
     void Calc_S_at_Right_Boundary(RelaxationODE *ode, MeshPoint &p_right);
 };
 
-class RelaxationStepper {
+class Relaxation {
 public:
-    RelaxationStepper(RelaxationODE *fode, int MeshSize = 400);
+    Relaxation(RelaxationODE *fode, int MeshSize = 400, double rel_error_threshold = 0.5,
+               double converge_criteria = 1e-6);
+
+    bool Solve(const VD &x, const VVD &y);  // * Solve the ODE with relaxation method using x, y as initial guess.
+    void DumpSolution(std::string filename);
 
 private:
     RelaxationODE *ode;
@@ -167,15 +180,23 @@ private:
     const int Mesh_Size;
     const int k_init = 0;
     const int k_final;
+    double rel_error_threshold;
+    double converge_criteria;
+    Grid mesh_grid;
 
     VVVD Relax_C;  // (Mesh_Size+1)*DOF*(DOF - left_boundary_size + 1);
 
     RelaxationMatrix Relax_S;
     void Reduce_to_Zero(int mesh_id);
     void Pivot_Elimination(int mesh_id);
+    void Backsubstitution();
+    void Relax();  // relax the solution by one step
+    double Update_Grid();
 };
 
 }  // namespace BSM_Soliton
+
+std::ostream &operator<<(std::ostream &os, const BSM_Soliton::MeshPoint &point);
 
 struct Relaxation_Param {
     double x1;

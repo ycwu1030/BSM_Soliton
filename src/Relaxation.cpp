@@ -5,6 +5,12 @@
 #include <iostream>
 using namespace std;
 
+ostream &operator<<(ostream &os, const BSM_Soliton::MeshPoint &point) {
+    os << point.X << "\t";
+    os << point.Y;
+    return os;
+}
+
 namespace BSM_Soliton {
 
 RelaxationMatrix::RelaxationMatrix(int dof) : S(dof, VD(2 * dof + 1)) {}
@@ -26,7 +32,7 @@ void RelaxationMatrix::Calc_S_at_Left_Boundary(RelaxationODE *ode, MeshPoint &p_
         for (int j = 0; j < dof; j++) {
             S[i + offset][j + dof] = p_left.dResultdY[i][j];
         }
-        S[i + offset][2 * dof] = p_left.Result[i];
+        S[i + offset][2 * dof] = -p_left.Result[i];
     }
 }
 
@@ -46,7 +52,7 @@ void RelaxationMatrix::Calc_S_at_Right_Boundary(RelaxationODE *ode, MeshPoint &p
         for (int j = 0; j < dof; j++) {
             S[i][j + dof] = p_right.dResultdY[i][j];
         }
-        S[i][2 * dof] = p_right.Result[i];
+        S[i][2 * dof] = -p_right.Result[i];
     }
 }
 
@@ -69,11 +75,11 @@ void RelaxationMatrix::Calc_S_at_Middle(RelaxationODE *ode, MeshPoint &p_km1, Me
                 S[i][j + dof] += 1.0;
             }
         }
-        S[i][2 * dof] = y[i] - ym1[i] - (x - xm1) * p_mid.Result[i];
+        S[i][2 * dof] = -(y[i] - ym1[i] - (x - xm1) * p_mid.Result[i]);
     }
 }
 
-RelaxationStepper::RelaxationStepper(RelaxationODE *fode, int MeshSize)
+Relaxation::Relaxation(RelaxationODE *fode, int MeshSize, double threshold, double converge)
     : ode(fode),
       Mesh_Size(MeshSize),
       DOF(fode->Get_DOF()),
@@ -81,7 +87,10 @@ RelaxationStepper::RelaxationStepper(RelaxationODE *fode, int MeshSize)
       k_init(0),
       k_final(MeshSize),
       Relax_S(fode->Get_DOF()),
-      Relax_C(MeshSize + 1, VVD(fode->Get_DOF(), VD(fode->Get_Right_Boundary_Size() + 1, 0))) {}
+      Relax_C(MeshSize + 1, VVD(fode->Get_DOF(), VD(fode->Get_Right_Boundary_Size() + 1, 0))),
+      mesh_grid(fode->Get_DOF(), MeshSize),
+      rel_error_threshold(threshold),
+      converge_criteria(converge) {}
 
 void Reduce_to_Zero(const unsigned s_row_dim, const unsigned offset, const unsigned s_row_max, const unsigned s_col_beg,
                     const VVD &c, VVD &s) {
@@ -260,18 +269,162 @@ void Gaussian_Elimination_with_Partial_Pivot(const unsigned r_beg, const unsigne
     }
 }
 
-void RelaxationStepper::Reduce_to_Zero(int mesh_id) {
+void Backsubstitution(const unsigned dimension, const unsigned offset, const unsigned mesh_size, VVVD &c) {
+    /*
+     * 1     X X                                V  F  -\
+     *   1   X X                                V  F  -+  offset   - 0th block in c
+     *     1 X X                                V  F  -/
+     *       1         X X                      V  F   -\
+     *         1       X X                      V  F   -\
+     *           1     X X                      V  F   -+   dimension  - 1th block in c
+     *             1   X X                      V  F   -/
+     *               1 X X                      V  F   -/
+     *                 1         X X            V  F
+     *                   1       X X            V  F
+     *                     1     X X            V  F
+     *                       1   X X            V  F
+     *                         1 X X            V  F
+     *                           1         X X  V  F
+     *                             1       X X  V  F
+     *                               1     X X  V  F
+     *                                 1   X X  V  F
+     *                                   1 X X  V  F
+     *                                     1    V  F  -\
+     *                                       1  V  F  -/  Last block in c
+     *
+     * Find the solutions to those V's
+     * only X's and F's are stored inside c
+     */
+    // * Backsubstitution to find the solution
+    int ic_coeff = dimension - offset;
+    for (size_t mesh_id = mesh_size - 1; mesh_id >= 0; --mesh_id) {
+        // * The storage in first block in c does not start from 0;
+        int ir_beg_in_c = mesh_id == 0 ? dimension - offset : 0;
+        for (size_t ic_pre = 0; ic_pre < dimension - offset; ic_pre++) {
+            double res = c[mesh_id + 1][ic_pre][ic_coeff];
+            for (size_t ir_c = ir_beg_in_c; ir_c < dimension; ir_c++) {
+                c[mesh_id][ir_c][ic_coeff] -= c[mesh_id][ir_c][ic_pre] * res;
+            }
+        }
+    }
+
+    // * Then move all the results into the first column
+    // * And arrange according to the mesh point
+    for (int mesh_id = 0; mesh_id < mesh_size; mesh_id++) {
+        for (size_t ir = 0; ir < offset; ir++) {
+            c[mesh_id][ir][0] = c[mesh_id][ir + dimension - offset][ic_coeff];
+        }
+        for (size_t ir = 0; ir < dimension - offset; ir++) {
+            c[mesh_id][ir + offset][0] = c[mesh_id + 1][ir][ic_coeff];
+        }
+    }
+    // * Now the results are stored in c mesh-point by mesh-point in the first column
+}
+
+void Relaxation::Reduce_to_Zero(int mesh_id) {
     if (mesh_id <= 0) return;  // * For the S matrix corresponding to left-boundary, we don't need to do this
     unsigned row_max = mesh_id >= Mesh_Size ? DOF - Left_Boundary_Size : DOF;
     unsigned col_beg = mesh_id >= Mesh_Size ? DOF : 0;
     BSM_Soliton::Reduce_to_Zero(DOF, Left_Boundary_Size, row_max, col_beg, Relax_C[mesh_id - 1], Relax_S.S);
 }
 
-void RelaxationStepper::Pivot_Elimination(int mesh_id) {
+void Relaxation::Pivot_Elimination(int mesh_id) {
     unsigned row_begin = mesh_id <= 0 ? DOF - Left_Boundary_Size : 0;
     unsigned col_begin = mesh_id <= 0 ? DOF : (mesh_id >= Mesh_Size ? DOF + Left_Boundary_Size : Left_Boundary_Size);
     unsigned dimension = mesh_id <= 0 ? Left_Boundary_Size : (mesh_id >= Mesh_Size ? DOF - Left_Boundary_Size : DOF);
     BSM_Soliton::Gaussian_Elimination_with_Partial_Pivot(row_begin, col_begin, dimension, Relax_S.S, Relax_C[mesh_id]);
+}
+
+void Relaxation::Backsubstitution() { BSM_Soliton::Backsubstitution(DOF, Left_Boundary_Size, Mesh_Size, Relax_C); }
+
+void Relaxation::Relax() {
+    // * Relax
+    // * Left Boundary
+    Relax_S.Calc_S_at_Left_Boundary(ode, mesh_grid.Points[0]);
+    Reduce_to_Zero(0);
+    Pivot_Elimination(0);
+
+    // * Mesh Point
+    for (size_t mesh_id = 1; mesh_id < Mesh_Size; mesh_id++) {
+        Relax_S.Calc_S_at_Middle(ode, mesh_grid.Points[mesh_id - 1], mesh_grid.Points[mesh_id]);
+        Reduce_to_Zero(mesh_id);
+        Pivot_Elimination(mesh_id);
+    }
+    // * Right Boundary
+    Relax_S.Calc_S_at_Right_Boundary(ode, mesh_grid.Points[Mesh_Size - 1]);
+    Reduce_to_Zero(Mesh_Size);
+    Pivot_Elimination(Mesh_Size);
+
+    // * Backsubstitution
+    Backsubstitution();
+}
+
+double Relaxation::Update_Grid() {
+    // * Using the results in Relax_C to update the results in grid
+
+    // * First determine the error
+    double rel_error_total = 0;
+    for (size_t index_y = 0; index_y < DOF; index_y++) {
+        for (size_t mesh_id = 0; mesh_id < Mesh_Size; mesh_id++) {
+            double dy_cur = abs(Relax_C[mesh_id][index_y][0]);
+            double y_cur = abs(mesh_grid.Points[mesh_id].Y[index_y]);
+            if (y_cur < 1) y_cur = 1;
+            rel_error_total += dy_cur / y_cur;
+        }
+    }
+    double rel_error_average = rel_error_total / DOF / Mesh_Size;
+    double frac = rel_error_average > rel_error_threshold ? rel_error_threshold / rel_error_average : 1;
+
+    // * Update the grid
+    for (size_t index_y = 0; index_y < DOF; index_y++) {
+        for (size_t mesh_id = 0; mesh_id < Mesh_Size; mesh_id++) {
+            mesh_grid.Points[mesh_id].Y[index_y] += Relax_C[mesh_id][index_y][0] * frac;
+        }
+    }
+    return rel_error_average;
+}
+
+bool Relaxation::Solve(const VD &x, const VVD &y) {
+    if (x.size() != y.size()) {
+        cout << "The input grid size does not match between x and y" << endl;
+        cout << "x.size() = " << x.size() << " != "
+             << " y.size() = " << y.size() << endl;
+        return false;
+    }
+    if (x.size() != Mesh_Size) {
+        cout << "The input grid size does not match to Mesh_Size" << endl;
+        cout << " x.size() = " << x.size() << " != "
+             << " Mesh_Size = " << Mesh_Size << endl;
+        return false;
+    }
+    for (size_t mesh_id = 0; mesh_id < Mesh_Size; mesh_id++) {
+        mesh_grid.Points[mesh_id].X = x[mesh_id];
+        mesh_grid.Points[mesh_id].Y = y[mesh_id];
+    }
+    size_t iter = 0;
+    size_t ITER_MAX = 1000;
+    for (; iter < ITER_MAX; iter++) {
+        Relax();
+        double err = Update_Grid();
+        if (err < converge_criteria) {
+            break;
+        }
+    }
+    if (iter == ITER_MAX) return false;
+    return true;
+}
+
+void Relaxation::DumpSolution(string filename) {
+    ofstream output(filename.c_str());
+    // output<<"The Solution is:"<<endl;
+    output << "x\t";
+    for (size_t i = 0; i < DOF; i++) {
+        output << "y_" << i << "\t";
+    }
+    output << endl;
+    for (size_t i = 0; i < Mesh_Size; i++) {
+        output << mesh_grid.Points[i] << endl;
+    }
 }
 
 }  // namespace BSM_Soliton
