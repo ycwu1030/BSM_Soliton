@@ -267,6 +267,13 @@ void RelaxationStepper::Reduce_to_Zero(int mesh_id) {
     BSM_Soliton::Reduce_to_Zero(DOF, Left_Boundary_Size, row_max, col_beg, Relax_C[mesh_id - 1], Relax_S.S);
 }
 
+void RelaxationStepper::Pivot_Elimination(int mesh_id) {
+    unsigned row_begin = mesh_id <= 0 ? DOF - Left_Boundary_Size : 0;
+    unsigned col_begin = mesh_id <= 0 ? DOF : (mesh_id >= Mesh_Size ? DOF + Left_Boundary_Size : Left_Boundary_Size);
+    unsigned dimension = mesh_id <= 0 ? Left_Boundary_Size : (mesh_id >= Mesh_Size ? DOF - Left_Boundary_Size : DOF);
+    BSM_Soliton::Gaussian_Elimination_with_Partial_Pivot(row_begin, col_begin, dimension, Relax_S.S, Relax_C[mesh_id]);
+}
+
 }  // namespace BSM_Soliton
 
 Relaxation::Relaxation() {
