@@ -1,4 +1,5 @@
 
+add_executable(ReduceTest Reduce_to_Zero_test.cpp)
 add_executable(LocalMinimaTest cxSM_Z2_LocalMinimaTest.cpp)
 add_executable(THDMLocalMinimaTest THDM_SCPV_LocalMinimaTest.cpp)
 add_executable(BiasedLocalMinimaTest cxSM_Z2_biased_LocalMinimaTest.cpp)
@@ -40,6 +41,7 @@ add_executable(THDMCMMUVTest THDMCMMUV_test.cpp)
 add_executable(RelaxationVortexTest RelaxationVortex.cpp)
 # add_executable(RelaxationVortexTheta RelaxationVortex_theta.cpp)
 
+target_link_libraries(ReduceTest ${cxSMSoliton_LIBRARY})
 target_link_libraries(CMMTest ${cxSMSoliton_LIBRARY})
 target_link_libraries(CMMUVTest ${cxSMSoliton_LIBRARY})
 target_link_libraries(THDMCMMTest ${cxSMSoliton_LIBRARY})
