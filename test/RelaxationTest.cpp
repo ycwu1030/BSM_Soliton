@@ -131,7 +131,7 @@ int main(int argc, char const *argv[]) {
     double gamma = pow(-1, m) * fac(n + m) / pow(2, m) / fac(m) / fac(n - m);
     SpheroidalHarmODE fode;
     fode.Set_Parameter(m, n, c2);
-    BSM_Soliton::Relaxation RX(&fode, 41);
+    BSM_Soliton::Relaxation RX(&fode);
     VD y_beg = {0.1, 0.1, 20.0};
     VD y_end = {105, 2.0 / 3.0 * 105, 20.0};
     VD X_Guess;

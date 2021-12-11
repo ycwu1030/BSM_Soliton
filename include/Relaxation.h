@@ -123,21 +123,10 @@ struct MeshPoint {
     VVD dResultdY;
 };
 
-
-
-struct Grid {
-    Grid(int dof, int mesh_size) : Points(mesh_size, MeshPoint(dof)){};
-
-    std::vector<MeshPoint> Points;
-};
-
 class RelaxationODE {
 public:
-    RelaxationODE(unsigned dof, unsigned left_boundary_size)
-        : DOF(dof),
-          Left_Boundary_Size(left_boundary_size <= dof ? left_boundary_size : dof),
-          Right_Boundary_Size(left_boundary_size <= dof ? dof - left_boundary_size : 0) {}
-    virtual ~RelaxationODE(){};
+    RelaxationODE(unsigned dof, unsigned left_boundary_size);
+    virtual ~RelaxationODE();
 
     unsigned Get_DOF() const { return DOF; }
 
@@ -167,9 +156,11 @@ struct RelaxationMatrix {
 
 class Relaxation {
 public:
-    Relaxation(RelaxationODE *fode, int MeshSize = 400, double rel_error_threshold = 0.5,
-               double converge_criteria = 1e-6);
+    typedef std::vector<MeshPoint> Grid;
+    explicit Relaxation(RelaxationODE *fode, double rel_error_threshold = 0.5, double converge_criteria = 1e-6,
+                        int MeshSize = 400);
 
+    void Set_Mesh_Size(int MeshSize = 400);
     bool Solve(const VD &x, const VVD &y);  // * Solve the ODE with relaxation method using x, y as initial guess.
     void DumpSolution(std::string filename);
 
@@ -177,16 +168,14 @@ private:
     RelaxationODE *ode;
     const int DOF;
     const int Left_Boundary_Size;
-    const int Mesh_Size;
-    const int k_init = 0;
-    const int k_final;
+    int Mesh_Size;
     double rel_error_threshold;
     double converge_criteria;
+
     Grid mesh_grid;
-
     VVVD Relax_C;  // (Mesh_Size+1)*DOF*(DOF - left_boundary_size + 1);
-
     RelaxationMatrix Relax_S;
+
     void Reduce_to_Zero(int mesh_id);
     void Pivot_Elimination(int mesh_id);
     void Backsubstitution();

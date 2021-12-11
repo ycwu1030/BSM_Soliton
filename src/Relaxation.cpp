@@ -13,6 +13,13 @@ ostream &operator<<(ostream &os, const BSM_Soliton::MeshPoint &point) {
 
 namespace BSM_Soliton {
 
+RelaxationODE::RelaxationODE(unsigned dof, unsigned left_boundary_size)
+    : DOF(dof),
+      Left_Boundary_Size(left_boundary_size <= dof ? left_boundary_size : dof),
+      Right_Boundary_Size(left_boundary_size <= dof ? dof - left_boundary_size : 0) {}
+
+RelaxationODE::~RelaxationODE() {}
+
 RelaxationMatrix::RelaxationMatrix(int dof) : S(dof, VD(2 * dof + 1)) {}
 
 void RelaxationMatrix::Calc_S_at_Left_Boundary(RelaxationODE *ode, MeshPoint &p_left) {
@@ -79,18 +86,22 @@ void RelaxationMatrix::Calc_S_at_Middle(RelaxationODE *ode, MeshPoint &p_km1, Me
     }
 }
 
-Relaxation::Relaxation(RelaxationODE *fode, int MeshSize, double threshold, double converge)
+Relaxation::Relaxation(RelaxationODE *fode, double threshold, double converge, int MeshSize)
     : ode(fode),
       Mesh_Size(MeshSize),
       DOF(fode->Get_DOF()),
       Left_Boundary_Size(fode->Get_Left_Boundary_Size()),
-      k_init(0),
-      k_final(MeshSize),
       Relax_S(fode->Get_DOF()),
       Relax_C(MeshSize + 1, VVD(fode->Get_DOF(), VD(fode->Get_Right_Boundary_Size() + 1, 0))),
       mesh_grid(fode->Get_DOF(), MeshSize),
       rel_error_threshold(threshold),
       converge_criteria(converge) {}
+
+void Relaxation::Set_Mesh_Size(int mesh_size) {
+    Mesh_Size = mesh_size;
+    mesh_grid.resize(Mesh_Size, MeshPoint(DOF));
+    Relax_C.resize(Mesh_Size + 1, VVD(DOF, VD(ode->Get_Right_Boundary_Size() + 1, 0)));
+}
 
 void Reduce_to_Zero(const unsigned s_row_dim, const unsigned offset, const unsigned s_row_max, const unsigned s_col_beg,
                     const VVD &c, VVD &s) {
@@ -340,18 +351,18 @@ void Relaxation::Backsubstitution() { BSM_Soliton::Backsubstitution(DOF, Left_Bo
 void Relaxation::Relax() {
     // * Relax
     // * Left Boundary
-    Relax_S.Calc_S_at_Left_Boundary(ode, mesh_grid.Points[0]);
+    Relax_S.Calc_S_at_Left_Boundary(ode, mesh_grid[0]);
     Reduce_to_Zero(0);
     Pivot_Elimination(0);
 
     // * Mesh Point
     for (size_t mesh_id = 1; mesh_id < Mesh_Size; mesh_id++) {
-        Relax_S.Calc_S_at_Middle(ode, mesh_grid.Points[mesh_id - 1], mesh_grid.Points[mesh_id]);
+        Relax_S.Calc_S_at_Middle(ode, mesh_grid[mesh_id - 1], mesh_grid[mesh_id]);
         Reduce_to_Zero(mesh_id);
         Pivot_Elimination(mesh_id);
     }
     // * Right Boundary
-    Relax_S.Calc_S_at_Right_Boundary(ode, mesh_grid.Points[Mesh_Size - 1]);
+    Relax_S.Calc_S_at_Right_Boundary(ode, mesh_grid[Mesh_Size - 1]);
     Reduce_to_Zero(Mesh_Size);
     Pivot_Elimination(Mesh_Size);
 
@@ -367,7 +378,7 @@ double Relaxation::Update_Grid() {
     for (size_t index_y = 0; index_y < DOF; index_y++) {
         for (size_t mesh_id = 0; mesh_id < Mesh_Size; mesh_id++) {
             double dy_cur = abs(Relax_C[mesh_id][index_y][0]);
-            double y_cur = abs(mesh_grid.Points[mesh_id].Y[index_y]);
+            double y_cur = abs(mesh_grid[mesh_id].Y[index_y]);
             if (y_cur < 1) y_cur = 1;
             rel_error_total += dy_cur / y_cur;
         }
@@ -378,7 +389,7 @@ double Relaxation::Update_Grid() {
     // * Update the grid
     for (size_t index_y = 0; index_y < DOF; index_y++) {
         for (size_t mesh_id = 0; mesh_id < Mesh_Size; mesh_id++) {
-            mesh_grid.Points[mesh_id].Y[index_y] += Relax_C[mesh_id][index_y][0] * frac;
+            mesh_grid[mesh_id].Y[index_y] += Relax_C[mesh_id][index_y][0] * frac;
         }
     }
     return rel_error_average;
@@ -391,15 +402,17 @@ bool Relaxation::Solve(const VD &x, const VVD &y) {
              << " y.size() = " << y.size() << endl;
         return false;
     }
+    if (y[0].size() != DOF) {
+        cout << "The input DOF of y does not match with the ode" << endl;
+        cout << " dof of y = " << y[0].size() << " != "
+             << " dof of ode = " << DOF << endl;
+    }
     if (x.size() != Mesh_Size) {
-        cout << "The input grid size does not match to Mesh_Size" << endl;
-        cout << " x.size() = " << x.size() << " != "
-             << " Mesh_Size = " << Mesh_Size << endl;
-        return false;
+        Set_Mesh_Size(x.size());
     }
     for (size_t mesh_id = 0; mesh_id < Mesh_Size; mesh_id++) {
-        mesh_grid.Points[mesh_id].X = x[mesh_id];
-        mesh_grid.Points[mesh_id].Y = y[mesh_id];
+        mesh_grid[mesh_id].X = x[mesh_id];
+        mesh_grid[mesh_id].Y = y[mesh_id];
     }
     size_t iter = 0;
     size_t ITER_MAX = 1000;
@@ -423,7 +436,7 @@ void Relaxation::DumpSolution(string filename) {
     }
     output << endl;
     for (size_t i = 0; i < Mesh_Size; i++) {
-        output << mesh_grid.Points[i] << endl;
+        output << mesh_grid[i] << endl;
     }
 }
 
