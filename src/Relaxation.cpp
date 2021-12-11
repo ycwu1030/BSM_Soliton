@@ -297,12 +297,12 @@ void Backsubstitution(const unsigned dimension, const unsigned offset, const uns
      */
     // * Backsubstitution to find the solution
     int ic_coeff = dimension - offset;
-    for (size_t mesh_id = mesh_size - 1; mesh_id >= 0; --mesh_id) {
+    for (int mesh_id = mesh_size - 1; mesh_id >= 0; --mesh_id) {
         // * The storage in first block in c does not start from 0;
         int ir_beg_in_c = mesh_id == 0 ? dimension - offset : 0;
-        for (size_t ic_pre = 0; ic_pre < dimension - offset; ic_pre++) {
+        for (int ic_pre = 0; ic_pre < dimension - offset; ic_pre++) {
             double res = c[mesh_id + 1][ic_pre][ic_coeff];
-            for (size_t ir_c = ir_beg_in_c; ir_c < dimension; ir_c++) {
+            for (int ir_c = ir_beg_in_c; ir_c < dimension; ir_c++) {
                 c[mesh_id][ir_c][ic_coeff] -= c[mesh_id][ir_c][ic_pre] * res;
             }
         }
@@ -311,10 +311,10 @@ void Backsubstitution(const unsigned dimension, const unsigned offset, const uns
     // * Then move all the results into the first column
     // * And arrange according to the mesh point
     for (int mesh_id = 0; mesh_id < mesh_size; mesh_id++) {
-        for (size_t ir = 0; ir < offset; ir++) {
+        for (int ir = 0; ir < offset; ir++) {
             c[mesh_id][ir][0] = c[mesh_id][ir + dimension - offset][ic_coeff];
         }
-        for (size_t ir = 0; ir < dimension - offset; ir++) {
+        for (int ir = 0; ir < dimension - offset; ir++) {
             c[mesh_id][ir + offset][0] = c[mesh_id + 1][ir][ic_coeff];
         }
     }
