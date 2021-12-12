@@ -157,10 +157,9 @@ struct RelaxationMatrix {
 class Relaxation {
 public:
     typedef std::vector<MeshPoint> Grid;
-    explicit Relaxation(RelaxationODE *fode, double rel_error_threshold = 0.5, double converge_criteria = 1e-6,
-                        int MeshSize = 400);
+    explicit Relaxation(RelaxationODE *fode, double rel_error_threshold = 0.5, double converge_criteria = 1e-6);
+    // ,int MeshSize = 400);
 
-    void Set_Mesh_Size(int MeshSize = 400);
     bool Solve(const VD &x, const VVD &y);  // * Solve the ODE with relaxation method using x, y as initial guess.
     void DumpSolution(std::string filename);
 
@@ -168,6 +167,8 @@ private:
     RelaxationODE *ode;
     const int DOF;
     const int Left_Boundary_Size;
+    int ITER_MAX;
+    void Set_Mesh_Size(int MeshSize);
     int Mesh_Size;
     double rel_error_threshold;
     double converge_criteria;

@@ -86,20 +86,23 @@ void RelaxationMatrix::Calc_S_at_Middle(RelaxationODE *ode, MeshPoint &p_km1, Me
     }
 }
 
-Relaxation::Relaxation(RelaxationODE *fode, double threshold, double converge, int MeshSize)
+Relaxation::Relaxation(RelaxationODE *fode, double threshold, double converge)
     : ode(fode),
-      Mesh_Size(MeshSize),
+      //   Mesh_Size(MeshSize),
       DOF(fode->Get_DOF()),
       Left_Boundary_Size(fode->Get_Left_Boundary_Size()),
       Relax_S(fode->Get_DOF()),
-      Relax_C(MeshSize + 1, VVD(fode->Get_DOF(), VD(fode->Get_Right_Boundary_Size() + 1, 0))),
-      mesh_grid(fode->Get_DOF(), MeshSize),
+      ITER_MAX(1000),
+      //   Relax_C(MeshSize + 1, VVD(fode->Get_DOF(), VD(fode->Get_Right_Boundary_Size() + 1, 0))),
+      //   mesh_grid(fode->Get_DOF(), MeshSize),
       rel_error_threshold(threshold),
       converge_criteria(converge) {}
 
 void Relaxation::Set_Mesh_Size(int mesh_size) {
     Mesh_Size = mesh_size;
+    mesh_grid.clear();
     mesh_grid.resize(Mesh_Size, MeshPoint(DOF));
+    Relax_C.clear();
     Relax_C.resize(Mesh_Size + 1, VVD(DOF, VD(ode->Get_Right_Boundary_Size() + 1, 0)));
 }
 
@@ -407,15 +410,13 @@ bool Relaxation::Solve(const VD &x, const VVD &y) {
         cout << " dof of y = " << y[0].size() << " != "
              << " dof of ode = " << DOF << endl;
     }
-    if (x.size() != Mesh_Size) {
-        Set_Mesh_Size(x.size());
-    }
+    Set_Mesh_Size(x.size());
     for (size_t mesh_id = 0; mesh_id < Mesh_Size; mesh_id++) {
         mesh_grid[mesh_id].X = x[mesh_id];
         mesh_grid[mesh_id].Y = y[mesh_id];
     }
     size_t iter = 0;
-    size_t ITER_MAX = 1000;
+    // size_t ITER_MAX = 1000;
     for (; iter < ITER_MAX; iter++) {
         Relax();
         double err = Update_Grid();
