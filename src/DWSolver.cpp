@@ -17,26 +17,54 @@ DomainWallSolver::DomainWallSolver(BaseModel *model)
       dF_value(model->Get_Field_Space_Dimension() * 2 + 3, 0),
       Fields_at_Left(model->Get_Field_Space_Dimension(), 0),
       Fields_at_Right(model->Get_Field_Space_Dimension(), 0) {
-    solver = new Relaxation(this);
+    solver = new Relaxation(this, 1.0);
 }
 
-// void DomainWallSolver::Set_Boundaries(const VD &field_at_left, const VD &field_at_right) {}
+// void DomainWallSolver::Calc_F_Variables(MeshPoint &point) {
+//     VD &y = point.Y;
+//     double tmp = 0;
+//     double c1 = 1.0 / (1.0 + F_ratio);
+//     double c2 = F_ratio / (1.0 + F_ratio);
+//     for (size_t i = 0; i < Field_Space_Dim; i++) {
+//         tmp += pow(y[i + Field_Space_Dim + 1], 2) / (pow(y[i + 1], 2) + 1e-3);
+//         dF_value[i + 1] = -2 * c2 * pow(y[i + Field_Space_Dim + 1], 2) / pow(pow(y[i + 1], 2) + 1e-3, 2) * (y[i +
+//         1]); dF_value[i + Field_Space_Dim + 1] = 2 * c2 * y[i + Field_Space_Dim + 1] / (pow(y[i + 1], 2) + 1e-3);
+//     }
+//     F_value = c1 * Field_Space_Dim / 4.0 + c2 * tmp;
+//     dF_value[0] = 0;
+//     dF_value[2 * Field_Space_Dim + 1] = 0;
+//     dF_value[2 * Field_Space_Dim + 2] = 0;
+// }
 
 void DomainWallSolver::Calc_F_Variables(MeshPoint &point) {
     VD &y = point.Y;
+    int n = Field_Space_Dim;
     double tmp = 0;
     double c1 = 1.0 / (1.0 + F_ratio);
     double c2 = F_ratio / (1.0 + F_ratio);
-    for (size_t i = 0; i < Field_Space_Dim; i++) {
-        // tmp += pow(y[i + Field_Space_Dim + 1] / (y[i + 1] + 1e-3), 2);
-        tmp += pow(y[i + Field_Space_Dim + 1], 2);
-        dF_value[i + 1] = 0;  //-2 * c2 * pow(y[i + Field_Space_Dim + 1] / (y[i + 1] + 1e-3), 2) / (y[i + 1] + 1e-3);
-        dF_value[i + Field_Space_Dim + 1] = 2 * c2 * y[i + Field_Space_Dim + 1];  // / pow(y[i + 1] + 1e-3, 2);
+    double epsilon = 1e-3;
+    VD field(y.begin() + 1, y.begin() + 1 + n);
+    VD dV = mod->dV(field);
+    VVD d2V = mod->d2V(field);
+    for (size_t i = 0; i < n; i++) {
+        tmp += pow(y[i + 1 + n] * y[2 * n + 1], 2) / (pow(y[i + 1], 2) + epsilon);
+        tmp += pow(dV[i] * y[2 * n + 1], 2) / (pow(y[i + 1 + n], 2) + epsilon);
     }
-    F_value = c1 * Field_Space_Dim / 4.0 + c2 * tmp;
+    F_value = c1 * Field_Space_Dim / 2.0 + c2 * tmp;
+
     dF_value[0] = 0;
-    dF_value[2 * Field_Space_Dim + 1] = 0;
-    dF_value[2 * Field_Space_Dim + 2] = 0;
+    dF_value[2 * n + 1] = 0;
+    dF_value[2 * n + 2] = 0;
+    for (size_t i = 0; i < n; i++) {
+        dF_value[i + 1] = -2 * pow(y[i + 1 + n] * y[2 * n + 1], 2) / pow(pow(y[i + 1], 2) + epsilon, 2) * y[i + 1];
+        for (size_t j = 0; j < n; j++) {
+            dF_value[i + 1] += pow(y[2 * n + 1], 2) * 2 * dV[j] * d2V[i][j] / (pow(y[j + 1 + n], 2) + epsilon);
+        }
+        dF_value[i + 1 + n] = 2 * y[i + 1 + n] * pow(y[2 * n + 1], 2) / (pow(y[i + 1], 2) + epsilon) -
+                              2 * y[i + 1 + n] * pow(dV[i] * y[2 * n + 1], 2) / pow(pow(y[i + 1 + n], 2) + epsilon, 2);
+        dF_value[2 * n + 1] += 2 * y[2 * n + 1] * pow(y[i + 1 + n], 2) / (pow(y[i + 1], 2) + epsilon) +
+                               2 * y[2 * n + 1] * pow(dV[i], 2) / (pow(y[i + 1 + n], 2) + epsilon);
+    }
 }
 
 void DomainWallSolver::dYdX(MeshPoint &point) {
@@ -91,12 +119,9 @@ void DomainWallSolver::Left_Boundary_Constraints(MeshPoint &point) {
     int n = Field_Space_Dim;
     VD &y = point.Y;
     point.Result[0] = y[0];
-    // double tmp = 0;
     for (int i = 0; i < n; i++) {
         point.Result[i + 1] = y[i + 1] - Fields_at_Left[i];
-        // tmp += abs(y[i + 1 + n]);
     }
-    // point.Result[n + 1] = tmp;
 
     point.dResultdY[0][0] = 1;
     for (int i = 0; i < n; i++) {
@@ -116,13 +141,6 @@ void DomainWallSolver::Left_Boundary_Constraints(MeshPoint &point) {
         point.dResultdY[i + 1][2 * n + 1] = 0;
         point.dResultdY[i + 1][2 * n + 2] = 0;
     }
-    // point.dResultdY[n + 1][0] = 0;
-    // for (int i = 0; i < n; i++) {
-    //     point.dResultdY[n + 1][i + 1] = 0;
-    //     point.dResultdY[n + 1][i + 1 + n] = y[i + 1 + n] >= 0 ? 1 : -1;
-    // }
-    // point.dResultdY[n + 1][2 * n + 1] = 0;
-    // point.dResultdY[n + 1][2 * n + 2] = 0;
 }
 
 void DomainWallSolver::Right_Boundary_Constraints(MeshPoint &point) {

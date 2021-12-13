@@ -111,7 +111,7 @@ Relaxation::Relaxation(RelaxationODE *fode, double threshold, double converge)
       DOF(fode->Get_DOF()),
       Left_Boundary_Size(fode->Get_Left_Boundary_Size()),
       Relax_S(fode->Get_DOF()),
-      ITER_MAX(1000),
+      ITER_MAX(1e4),
       //   Relax_C(MeshSize + 1, VVD(fode->Get_DOF(), VD(fode->Get_Right_Boundary_Size() + 1, 0))),
       //   mesh_grid(fode->Get_DOF(), MeshSize),
       rel_error_threshold(threshold),
@@ -376,29 +376,20 @@ void Relaxation::Backsubstitution() { BSM_Soliton::Backsubstitution(DOF, Left_Bo
 void Relaxation::Relax() {
     // * Relax
     // * Left Boundary
-    cout << "Relax at Left Boundary" << endl;
     Relax_S.Calc_S_at_Left_Boundary(ode, mesh_grid[0]);
-    // PrintS(Relax_S.S);
     Reduce_to_Zero(0);
     Pivot_Elimination(0);
-    // PrintS(Relax_S.S);
 
     // * Mesh Point
-    cout << "Relax at mesh point" << endl;
     for (size_t mesh_id = 1; mesh_id < Mesh_Size; mesh_id++) {
         Relax_S.Calc_S_at_Middle(ode, mesh_grid[mesh_id - 1], mesh_grid[mesh_id]);
         Reduce_to_Zero(mesh_id);
         Pivot_Elimination(mesh_id);
     }
     // * Right Boundary
-    cout << "Relax at Right Boundary" << endl;
     Relax_S.Calc_S_at_Right_Boundary(ode, mesh_grid[Mesh_Size - 1]);
-    PrintS(Relax_S.S);
-    PrintS(Relax_C[Mesh_Size - 1]);
     Reduce_to_Zero(Mesh_Size);
-    PrintS(Relax_S.S);
     Pivot_Elimination(Mesh_Size);
-    PrintS(Relax_S.S);
 
     // * Backsubstitution
     Backsubstitution();
@@ -449,14 +440,14 @@ bool Relaxation::Solve(const VD &x, const VVD &y) {
     size_t iter = 0;
     // size_t ITER_MAX = 1000;
     for (; iter < ITER_MAX; iter++) {
-        cout << "Iter-" << iter + 1 << endl;
+        cout << "Iter-" << iter << endl;
         Relax();
         double err = Update_Grid();
+        cout << "Error = " << err << endl;
         if (err < converge_criteria) {
             break;
         }
     }
-    cout << "Relaxation Done!" << endl;
     if (iter == ITER_MAX) return false;
     return true;
 }
