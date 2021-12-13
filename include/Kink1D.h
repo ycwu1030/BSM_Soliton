@@ -55,7 +55,7 @@ public:
     ~Kink1D(){};
 
     VD equationOfMotion(double z, VD Y);
-    std::tuple<VD, VD, VD, VD> findProfile(double dphi0_tol_rel = 1e-12, double phi_tol_rel = 1e-6, int npoints = 400,
+    std::tuple<VD, VD, VD, VD> findProfile(double dphi0_tol_rel = 1e-12, double phi_tol_rel = 1e-6, int npoints = 10000,
                                            double rmax = 1e4);
 
     double VvalatX(double x) { return V(x); };

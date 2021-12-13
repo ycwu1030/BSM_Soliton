@@ -13,6 +13,17 @@ ostream &operator<<(ostream &os, const BSM_Soliton::MeshPoint &point) {
 
 namespace BSM_Soliton {
 
+void PrintS(VVD &S) {
+    cout << "---------------------->" << endl;
+    for (int i = 0; i < S.size(); i++) {
+        for (int j = 0; j < S[i].size(); j++) {
+            cout << S[i][j] << "\t";
+        }
+        cout << endl;
+    }
+    cout << "<----------------------" << endl;
+}
+
 RelaxationODE::RelaxationODE(unsigned dof, unsigned left_boundary_size)
     : DOF(dof),
       Left_Boundary_Size(left_boundary_size <= dof ? left_boundary_size : dof),
@@ -20,7 +31,12 @@ RelaxationODE::RelaxationODE(unsigned dof, unsigned left_boundary_size)
 
 RelaxationODE::~RelaxationODE() {}
 
-RelaxationMatrix::RelaxationMatrix(int dof) : S(dof, VD(2 * dof + 1)) {}
+RelaxationMatrix::RelaxationMatrix(int dof) : DOF(dof), S(dof, VD(2 * dof + 1, 0)) {}
+
+void RelaxationMatrix::Clean() {
+    S.clear();
+    S.resize(DOF, VD(2 * DOF + 1, 0));
+}
 
 void RelaxationMatrix::Calc_S_at_Left_Boundary(RelaxationODE *ode, MeshPoint &p_left) {
     /*
@@ -31,6 +47,7 @@ void RelaxationMatrix::Calc_S_at_Left_Boundary(RelaxationODE *ode, MeshPoint &p_
      * - - - - - X X X X X F
      * - - - - - X X X X X F
      */
+    Clean();
     int dof = ode->Get_DOF();
     int left_boundary_size = ode->Get_Left_Boundary_Size();
     int offset = dof - left_boundary_size;
@@ -52,6 +69,7 @@ void RelaxationMatrix::Calc_S_at_Right_Boundary(RelaxationODE *ode, MeshPoint &p
      * - - - - - - - - - - -
      * - - - - - - - - - - -
      */
+    Clean();
     int dof = ode->Get_DOF();
     int right_boundary_size = ode->Get_Right_Boundary_Size();
     ode->Right_Boundary_Constraints(p_right);
@@ -64,6 +82,7 @@ void RelaxationMatrix::Calc_S_at_Right_Boundary(RelaxationODE *ode, MeshPoint &p
 }
 
 void RelaxationMatrix::Calc_S_at_Middle(RelaxationODE *ode, MeshPoint &p_km1, MeshPoint &p_k) {
+    Clean();
     int dof = ode->Get_DOF();
     MeshPoint p_mid(dof);
     double xm1 = p_km1.X;
@@ -208,6 +227,7 @@ void Gaussian_Elimination_with_Partial_Pivot(const unsigned r_beg, const unsigne
         row_scale[i - ir_beg] = 1.0 / largest_in_row;
         row_permutation_index[i - ir_beg] = -1;
     }
+    // cout << "scale for each row: " << row_scale << endl;
 
     double pivot;
     double pivot_inverse;
@@ -235,6 +255,8 @@ void Gaussian_Elimination_with_Partial_Pivot(const unsigned r_beg, const unsigne
                 pivot = largest * row_scale[i - ir_beg];
             }
         }
+        // PrintS(s);
+        // cout << "pivot-" << id << ": " << s[ir_pivot][ic_pivot] << endl;
         // * Now current pivot is at (ir_pivot,ic_pivot)
         if (s[ir_pivot][ic_pivot] == 0.0) {
             cout << "The whole matrix is zero" << endl;
@@ -354,20 +376,29 @@ void Relaxation::Backsubstitution() { BSM_Soliton::Backsubstitution(DOF, Left_Bo
 void Relaxation::Relax() {
     // * Relax
     // * Left Boundary
+    cout << "Relax at Left Boundary" << endl;
     Relax_S.Calc_S_at_Left_Boundary(ode, mesh_grid[0]);
+    // PrintS(Relax_S.S);
     Reduce_to_Zero(0);
     Pivot_Elimination(0);
+    // PrintS(Relax_S.S);
 
     // * Mesh Point
+    cout << "Relax at mesh point" << endl;
     for (size_t mesh_id = 1; mesh_id < Mesh_Size; mesh_id++) {
         Relax_S.Calc_S_at_Middle(ode, mesh_grid[mesh_id - 1], mesh_grid[mesh_id]);
         Reduce_to_Zero(mesh_id);
         Pivot_Elimination(mesh_id);
     }
     // * Right Boundary
+    cout << "Relax at Right Boundary" << endl;
     Relax_S.Calc_S_at_Right_Boundary(ode, mesh_grid[Mesh_Size - 1]);
+    PrintS(Relax_S.S);
+    PrintS(Relax_C[Mesh_Size - 1]);
     Reduce_to_Zero(Mesh_Size);
+    PrintS(Relax_S.S);
     Pivot_Elimination(Mesh_Size);
+    PrintS(Relax_S.S);
 
     // * Backsubstitution
     Backsubstitution();
@@ -418,12 +449,14 @@ bool Relaxation::Solve(const VD &x, const VVD &y) {
     size_t iter = 0;
     // size_t ITER_MAX = 1000;
     for (; iter < ITER_MAX; iter++) {
+        cout << "Iter-" << iter + 1 << endl;
         Relax();
         double err = Update_Grid();
         if (err < converge_criteria) {
             break;
         }
     }
+    cout << "Relaxation Done!" << endl;
     if (iter == ITER_MAX) return false;
     return true;
 }

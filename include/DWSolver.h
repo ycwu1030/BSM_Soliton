@@ -27,7 +27,9 @@ public:
     // void Set_Boundaries(const VD &field_at_left, const VD &field_at_right);
 
     bool Solve(const VD &field_at_left, const VD &field_at_right);
-    bool Solve(const VVD &fields_grid);
+    double Get_Tension();
+    double Get_Wall_Width(double criteria = 0.64);
+    void Dump_Solution(std::string filename);
     virtual void dYdX(MeshPoint &point) override final;
     virtual void Left_Boundary_Constraints(MeshPoint &point) override final;
     virtual void Right_Boundary_Constraints(MeshPoint &point) override final;
@@ -35,6 +37,7 @@ public:
 private:
     BaseModel *mod;
     Relaxation *solver;
+    Relaxation::result_t result;
 
     int Field_Space_Dim;
     int Mesh_Size;
@@ -48,6 +51,8 @@ private:
 
     VD Fields_at_Left;
     VD Fields_at_Right;
+
+    double Guess_Z_Range();
 };
 }  // namespace BSM_Soliton
 
