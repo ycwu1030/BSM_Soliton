@@ -79,12 +79,12 @@ public:
 
     bool CheckHessian(VD field_values);
 
-    double GetTotalEnergy(VD x, VVD fields);
-    double GetTension(VD x, VVD fields);
-    VD GetEnergyDensity(VD x, VVD fields);
-    double GetWallWidth(VD x, VVD fields, double criteria = 0.64);
-    void DumpFullSolution(VD x, VVD fields, std::string filename);
-    void DumpEnergyDensity(VD x, VVD fields, std::string filename);
+    double GetTotalEnergy(VD x, VVD fields, VD dfield);
+    double GetTension(VD x, VVD fields, VD dfield);
+    VD GetEnergyDensity(VD x, VVD fields, VD dfield);
+    double GetWallWidth(VD x, VVD fields, VD dfield, double criteria = 0.64);
+    void DumpFullSolution(VD x, VVD fields, VD dfield, std::string filename);
+    void DumpEnergyDensity(VD x, VVD fields, VD dfield, std::string filename);
 };
 
 #endif  // _POTENTIAL_H_
