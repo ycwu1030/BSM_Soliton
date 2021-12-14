@@ -53,10 +53,9 @@ VD cumtrapz(VD pts, VD x = {}, double dx = 1.0, double initial = 0.0);
 VVD transpose(const VVD &mat);
 
 // VD linspace(double start, double end, int n);
-// VD linspace(double start, double end, double dx);
 
 template <class T>
-std::vector<T> linspace(T start, T end, unsigned size) {
+std::vector<T> linspace(T start, T end, int size) {
     std::vector<T> res;
     if (size <= 1) {
         res.push_back(start);
@@ -70,6 +69,7 @@ std::vector<T> linspace(T start, T end, unsigned size) {
     res.back() = end;
     return res;
 }
+VD linespace(double start, double end, double step);
 
 template <class T>
 T deriv14_const_dx(T y, double dx = 1.0) {

@@ -9,6 +9,32 @@
 #include "Relaxation.h"
 
 namespace BSM_Soliton {
+class DomainWallSolverOriginal : public RelaxationODE {
+public:
+    DomainWallSolverOriginal(BaseModel *mod);
+    void Set_Mesh_Size(int MeshSize = 401) { Mesh_Size = MeshSize; }
+
+    bool Solve(const VD &field_at_left, const VD &field_at_right);
+    double Get_Tension();
+    double Get_Wall_Width(double criteria = 0.64);
+    void Dump_Solution(std::string filename);
+    virtual void dYdX(MeshPoint &point) override final;
+    virtual void Left_Boundary_Constraints(MeshPoint &point) override final;
+    virtual void Right_Boundary_Constraints(MeshPoint &point) override final;
+
+private:
+    BaseModel *mod;
+    Relaxation *solver;
+    Relaxation::result_t result;
+
+    int Field_Space_Dim;
+    int Mesh_Size;
+
+    VD Fields_at_Left;
+    VD Fields_at_Right;
+
+    double Guess_Z_Range();
+};
 class DomainWallSolver : public RelaxationODE {
     // * DOF convention:
     // * internally solved in terms of q from 0 to 1

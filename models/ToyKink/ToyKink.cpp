@@ -30,8 +30,8 @@ private:
 
 int main(int argc, char const *argv[]) {
     ToyKink model;
-    BSM_Soliton::DomainWallSolver DW(&model);
-    DW.Set_Allocation_Parameters(0);
+    BSM_Soliton::DomainWallSolverOriginal DW(&model);
+    // DW.Set_Mesh_Size(101);
     DW.Solve({-1}, {1});
     DW.Dump_Solution("ToyKink_test.dat");
     return 0;

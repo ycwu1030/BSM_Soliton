@@ -8,6 +8,199 @@
 using namespace std;
 
 namespace BSM_Soliton {
+DomainWallSolverOriginal::DomainWallSolverOriginal(BaseModel *model)
+    : mod(model),
+      Mesh_Size(401),
+      Field_Space_Dim(model->Get_Field_Space_Dimension()),
+      RelaxationODE(model->Get_Field_Space_Dimension() * 2, model->Get_Field_Space_Dimension()),
+      Fields_at_Left(model->Get_Field_Space_Dimension(), 0),
+      Fields_at_Right(model->Get_Field_Space_Dimension(), 0) {
+    solver = new Relaxation(this, 1.0);
+}
+
+void DomainWallSolverOriginal::dYdX(MeshPoint &point) {
+    int n = Field_Space_Dim;
+    VD &y = point.Y;
+    double t = point.X;
+    VD fields(y.begin(), y.begin() + n);
+    VD dV = mod->dV(fields);
+    VVD d2V = mod->d2V(fields);
+    for (size_t i = 0; i < n; i++) {
+        point.Result[i] = y[i + n] / cos(t) / cos(t);
+        point.Result[i + n] = dV[i] / cos(t) / cos(t);
+    }
+
+    for (size_t i = 0; i < n; i++) {
+        for (size_t j = 0; j < n; j++) {
+            double delta_ij = i == j ? 1 : 0;
+            point.dResultdY[i][j] = 0;
+            point.dResultdY[i][j + n] = delta_ij / cos(t) / cos(t);
+            point.dResultdY[i + n][j] = d2V[i][j] / cos(t) / cos(t);
+            point.dResultdY[i + n][j + n] = 0;
+        }
+    }
+}
+
+void DomainWallSolverOriginal::Left_Boundary_Constraints(MeshPoint &point) {
+    VD &y = point.Y;
+    int n = Field_Space_Dim;
+    for (size_t i = 0; i < n; i++) {
+        point.Result[i] = y[i] - Fields_at_Left[i];
+        for (size_t j = 0; j < n; j++) {
+            double delta_ij = i == j ? 1 : 0;
+            point.dResultdY[i][j] = delta_ij;
+            point.dResultdY[i][j + n] = 0;
+        }
+    }
+}
+
+void DomainWallSolverOriginal::Right_Boundary_Constraints(MeshPoint &point) {
+    VD &y = point.Y;
+    int n = Field_Space_Dim;
+    for (size_t i = 0; i < n; i++) {
+        point.Result[i] = y[i] - Fields_at_Right[i];
+        for (size_t j = 0; j < n; j++) {
+            double delta_ij = i == j ? 1 : 0;
+            point.dResultdY[i][j] = delta_ij;
+            point.dResultdY[i][j + n] = 0;
+        }
+    }
+}
+
+bool DomainWallSolverOriginal::Solve(const VD &field_at_left, const VD &field_at_right) {
+    Fields_at_Left = field_at_left;
+    Fields_at_Right = field_at_right;
+    double z_max_guess = Guess_Z_Range();
+    VD qs = linspace(-M_PI_2, M_PI_2, Mesh_Size);
+    VD left_boundary(DOF, 0);
+    VD right_boundary(DOF, 0);
+    int n = Field_Space_Dim;
+    for (size_t i = 0; i < n; i++) {
+        left_boundary[i] = Fields_at_Left[i];
+        left_boundary[i + n] = 0;
+        right_boundary[i] = Fields_at_Right[i];
+        right_boundary[i + n] = 0;
+    }
+
+    VVD grids = linspace(left_boundary, right_boundary, Mesh_Size);
+    bool solved = solver->Solve(qs, grids);
+    result = solver->Get_Solution();
+    return solved;
+}
+
+double DomainWallSolverOriginal::Guess_Z_Range() {
+    double zmax = 10.0;
+    VD couplings = mod->Quartic_Couplings(Fields_at_Left);
+    for (size_t i = 0; i < Field_Space_Dim; i++) {
+        if (CloseQ(Fields_at_Left[i], Fields_at_Right[i])) continue;
+        double zi = 6.0 / sqrt(couplings[i] / 2);
+        if (zi > zmax) {
+            zmax = zi;
+        }
+    }
+    return zmax;
+}
+
+double DomainWallSolverOriginal::Get_Tension() {
+    double tension = 0;
+    double V0 = mod->V_min();
+    int n = Field_Space_Dim;
+    for (size_t i = 0; i < result.size() - 1; i++) {
+        VD &y_l = result[i].Y;
+        double z_l = result[i].X;
+        VD phi_l(y_l.begin(), y_l.begin() + n);
+        VD dphidz_l(y_l.begin() + n, y_l.begin() + n + n);
+        double density_l = dphidz_l * dphidz_l / 2.0;
+        density_l += mod->V(phi_l) - V0;
+
+        VD &y_h = result[i + 1].Y;
+        double z_h = result[i + 1].X;
+        VD phi_h(y_h.begin(), y_h.begin() + n);
+        VD dphidz_h(y_h.begin() + n, y_h.begin() + n + n);
+        double density_h = dphidz_h * dphidz_h / 2.0;
+        density_h += mod->V(phi_h) - V0;
+
+        tension += (density_l + density_h) * (z_h - z_l) / 2.0;
+    }
+    return tension;
+}
+
+double DomainWallSolverOriginal::Get_Wall_Width(double criteria) {
+    VD z_aver;
+    VD accumulated_tension;
+    double tension = 0;
+    double V0 = mod->V_min();
+    int n = Field_Space_Dim;
+    for (size_t i = 0; i < result.size() - 1; i++) {
+        VD &y_l = result[i].Y;
+        double z_l = result[i].X;
+        VD phi_l(y_l.begin(), y_l.begin() + n);
+        VD dphidz_l(y_l.begin() + n, y_l.begin() + n + n);
+        double density_l = dphidz_l * dphidz_l / 2.0;
+        density_l += mod->V(phi_l) - V0;
+
+        VD &y_h = result[i + 1].Y;
+        double z_h = result[i + 1].X;
+        VD phi_h(y_h.begin(), y_h.begin() + n);
+        VD dphidz_h(y_h.begin() + n, y_h.begin() + n + n);
+        double density_h = dphidz_h * dphidz_h / 2.0;
+        density_h += mod->V(phi_h) - V0;
+
+        tension += (density_l + density_h) * (z_h - z_l) / 2.0;
+
+        z_aver.push_back((z_l + z_h) / 2.0);
+        accumulated_tension.push_back(tension);
+    }
+    double p1 = tension * (1.0 - criteria) / 2.0;
+    double p2 = tension * (1.0 + criteria) / 2.0;
+    auto p1_iter = std::lower_bound(accumulated_tension.begin(), accumulated_tension.end(), p1);
+    auto p2_iter = std::lower_bound(accumulated_tension.begin(), accumulated_tension.end(), p2);
+    size_t ip1 = std::distance(accumulated_tension.begin(), p1_iter);
+    size_t ip2 = std::distance(accumulated_tension.begin(), p2_iter);
+    ip1 = ip1 < 1 ? 1 : ip1;
+    ip2 = ip2 < 1 ? 1 : ip2;
+    double r1 = (p1 - accumulated_tension[ip1 - 1]) / (accumulated_tension[ip1] - accumulated_tension[ip1 - 1]);
+    double r2 = (p2 - accumulated_tension[ip2 - 1]) / (accumulated_tension[ip2] - accumulated_tension[ip2 - 1]);
+    double x1 = z_aver[ip1 - 1] + r1 * (z_aver[ip1] - z_aver[ip1 - 1]);
+    double x2 = z_aver[ip2 - 1] + r2 * (z_aver[ip2] - z_aver[ip2 - 1]);
+    return x2 - x1;
+}
+
+void DomainWallSolverOriginal::Dump_Solution(string filename) {
+    ofstream output(filename.c_str());
+    int n = Field_Space_Dim;
+    output << "z";
+    for (size_t i = 0; i < n; i++) {
+        output << "\tphi" << i;
+    }
+    for (size_t i = 0; i < n; i++) {
+        output << "\tdphi" << i << "dz";
+    }
+    output << "\tepsilon_z" << endl;
+    double V0 = mod->V_min();
+    output << std::scientific;
+    output << std::showpos;
+    output << std::setprecision(8);
+    for (size_t i = 0; i < result.size(); i++) {
+        VD &y_l = result[i].Y;
+        double z_l = result[i].X;
+        VD phi_l(y_l.begin(), y_l.begin() + n);
+        VD dphidz_l(y_l.begin() + n, y_l.begin() + n + n);
+        double density_l = dphidz_l * dphidz_l / 2.0;
+        density_l += mod->V(phi_l) - V0;
+
+        output << z_l;
+        for (size_t j = 0; j < n; j++) {
+            output << "\t" << y_l[j];
+        }
+        for (size_t j = 0; j < n; j++) {
+            output << "\t" << y_l[j + n];
+        }
+        output << "\t" << density_l << endl;
+    }
+    output.close();
+}
+
 DomainWallSolver::DomainWallSolver(BaseModel *model)
     : mod(model),
       Mesh_Size(401),
@@ -47,8 +240,8 @@ void DomainWallSolver::Calc_F_Variables(MeshPoint &point) {
     VD dV = mod->dV(field);
     VVD d2V = mod->d2V(field);
     for (size_t i = 0; i < n; i++) {
-        tmp += pow(y[i + 1 + n] * y[2 * n + 1], 2) / (pow(y[i + 1], 2) + epsilon);
-        tmp += pow(dV[i] * y[2 * n + 1], 2) / (pow(y[i + 1 + n], 2) + epsilon);
+        tmp += pow(y[i + 1 + n], 2) / (pow(y[i + 1], 2) + epsilon);
+        tmp += pow(dV[i], 2) / (pow(y[i + 1 + n], 2) + epsilon);
     }
     F_value = c1 * Field_Space_Dim / 2.0 + c2 * tmp;
 
@@ -56,14 +249,12 @@ void DomainWallSolver::Calc_F_Variables(MeshPoint &point) {
     dF_value[2 * n + 1] = 0;
     dF_value[2 * n + 2] = 0;
     for (size_t i = 0; i < n; i++) {
-        dF_value[i + 1] = -2 * pow(y[i + 1 + n] * y[2 * n + 1], 2) / pow(pow(y[i + 1], 2) + epsilon, 2) * y[i + 1];
+        dF_value[i + 1] = -2 * c2 * pow(y[i + 1 + n], 2) / pow(pow(y[i + 1], 2) + epsilon, 2) * y[i + 1];
         for (size_t j = 0; j < n; j++) {
-            dF_value[i + 1] += pow(y[2 * n + 1], 2) * 2 * dV[j] * d2V[i][j] / (pow(y[j + 1 + n], 2) + epsilon);
+            dF_value[i + 1] += 2 * c2 * dV[j] * d2V[i][j] / (pow(y[j + 1 + n], 2) + epsilon);
         }
-        dF_value[i + 1 + n] = 2 * y[i + 1 + n] * pow(y[2 * n + 1], 2) / (pow(y[i + 1], 2) + epsilon) -
-                              2 * y[i + 1 + n] * pow(dV[i] * y[2 * n + 1], 2) / pow(pow(y[i + 1 + n], 2) + epsilon, 2);
-        dF_value[2 * n + 1] += 2 * y[2 * n + 1] * pow(y[i + 1 + n], 2) / (pow(y[i + 1], 2) + epsilon) +
-                               2 * y[2 * n + 1] * pow(dV[i], 2) / (pow(y[i + 1 + n], 2) + epsilon);
+        dF_value[i + 1 + n] = 2 * c2 * y[i + 1 + n] / (pow(y[i + 1], 2) + epsilon) -
+                              2 * c2 * y[i + 1 + n] * pow(dV[i], 2) / pow(pow(y[i + 1 + n], 2) + epsilon, 2);
     }
 }
 
@@ -185,7 +376,7 @@ void DomainWallSolver::Right_Boundary_Constraints(MeshPoint &point) {
 bool DomainWallSolver::Solve(const VD &field_at_left, const VD &field_at_right) {
     Fields_at_Left = field_at_left;
     Fields_at_Right = field_at_right;
-    VD qs = linspace(0.0, 1.0, Mesh_Size);
+    VD qs = linspace(0.0, Mesh_Size - 1.0, Mesh_Size);
     VD left_boundary(DOF, 0);
     VD right_boundary(DOF, 0);
     double z_max_guess = Guess_Z_Range();
