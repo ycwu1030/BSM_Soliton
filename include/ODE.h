@@ -3,7 +3,13 @@
 
 #include "VTypes.h"
 
-namespace BSM_Soliton {}  // namespace BSM_Soliton
+namespace BSM_Soliton {
+template <class Stepper>
+class OdeIntegrator {
+    OdeIntegrator();
+    ~OdeIntegrator();
+};
+}  // namespace BSM_Soliton
 
 class ODE {
 private:

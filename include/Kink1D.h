@@ -6,6 +6,10 @@
 #include "RungeKutta.h"
 #include "VTypes.h"
 
+namespace BSM_Soliton {
+class Kink1D {};
+}  // namespace BSM_Soliton
+
 enum CONVERGENCETYPE { UNDERSHOOT = -1, CONVERGED = 0, OVERSHOOT = 1, TOOSMALLSTEP = 2, TOOLARGEZ = 3, NONE = -9 };
 
 class Kink1D {

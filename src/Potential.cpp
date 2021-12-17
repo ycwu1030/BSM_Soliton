@@ -105,34 +105,44 @@ VD Potential::Get_Local_Minimum(unsigned id) const {
 }
 }  // namespace BSM_Soliton
 
-double Potential::GetTotalEnergy(VD x, VVD fields) {
+double Potential::GetTotalEnergy(VD x, VVD fields, VD dfields) {
     double energy = 0;
     double V0 = V0_global();
-    for (size_t i = 0; i < x.size() - 1; i++) {
+    for (size_t i = 0; i < x.size(); i++) {
         double density = 0;
-        double DeltaZ = x[i + 1] - x[i];
-        VD yaver = (fields[i + 1] + fields[i]) / 2;
-        VD ydif = (fields[i + 1] - fields[i]);
-        density +=
-            (ydif / DeltaZ * ydif / DeltaZ) / 2;  //(fields[i+1]-fields[i])*(fields[i+1]-fields[i])/pow(DeltaZ,2)/2;
-        density += Vtotal(yaver) - V0;
+        double DeltaZ = 0;
+        if (i == 0) {
+            DeltaZ = (x[1] - x[0]) / 2;
+        } else if (i == x.size() - 1) {
+            DeltaZ = (x[i] - x[i - 1]) / 2;
+        } else {
+            DeltaZ = (x[i + 1] - x[i - 1]) / 2;
+        }
+        density += dfields[i] * dfields[i] / 2;
+        density += Vtotal(fields[i]) - V0;
         energy += density * DeltaZ;
     }
     return energy;
 }
-double Potential::GetWallWidth(VD x, VVD fields, double criteria) {
+double Potential::GetWallWidth(VD x, VVD fields, VD dfields, double criteria) {
     VD x_aver;
     VD accumulated_energy;
     double energy = 0;
-    double density = 0;
     double V0 = V0_global();
-    for (int i = 0; i < x.size() - 1; i++) {
-        double dx = x[i + 1] - x[i];
-        x_aver.push_back((x[i + 1] + x[i]) / 2.0);
-        VD yaver = (fields[i + 1] + fields[i]) / 2;
-        VD ydif = (fields[i + 1] - fields[i]);
-        density = ((ydif / dx * ydif / dx) / 2 + Vtotal(yaver) - V0);
-        energy += density;
+    for (size_t i = 0; i < x.size(); i++) {
+        double density = 0;
+        double DeltaZ = 0;
+        if (i == 0) {
+            DeltaZ = (x[1] - x[0]) / 2;
+        } else if (i == x.size() - 1) {
+            DeltaZ = (x[i] - x[i - 1]) / 2;
+        } else {
+            DeltaZ = (x[i + 1] - x[i - 1]) / 2;
+        }
+        density += dfields[i] * dfields[i] / 2;
+        density += Vtotal(fields[i]) - V0;
+        energy += density * DeltaZ;
+        x_aver.push_back(x[i]);
         accumulated_energy.push_back(energy);
     }
     double energy_total = accumulated_energy.back();
@@ -150,7 +160,7 @@ double Potential::GetWallWidth(VD x, VVD fields, double criteria) {
     double x2 = x_aver[ip2 - 1] + r2 * (x_aver[ip2] - x_aver[ip2 - 1]);
     return x2 - x1;
 }
-void Potential::DumpFullSolution(VD x, VVD fields, std::string filename) {
+void Potential::DumpFullSolution(VD x, VVD fields, VD dfields, std::string filename) {
     double density;
     std::ofstream output(filename.c_str());
     double V0 = V0_global();
@@ -159,37 +169,58 @@ void Potential::DumpFullSolution(VD x, VVD fields, std::string filename) {
         output << "\tphi" << i;
     }
     output << "\tdensity" << endl;
-    for (int i = 0; i < x.size() - 1; i++) {
-        double DeltaZ = x[i + 1] - x[i];
-        double xaver = (x[i + 1] + x[i]) / 2;
-        VD yaver = (fields[i + 1] + fields[i]) / 2;
-        VD ydif = (fields[i + 1] - fields[i]);
-        density = ((ydif / DeltaZ * ydif / DeltaZ) / 2 + Vtotal(yaver) - V0);
-        output << scientific << setprecision(10) << x[i] << "\t" << fields[i] << "\t" << density << endl;
+    output << std::scientific;
+    output << std::showpos;
+    output << std::setprecision(10);
+    for (int i = 0; i < x.size(); i++) {
+        double density = 0;
+        double DeltaZ = 0;
+        if (i == 0) {
+            DeltaZ = (x[1] - x[0]) / 2;
+        } else if (i == x.size() - 1) {
+            DeltaZ = (x[i] - x[i - 1]) / 2;
+        } else {
+            DeltaZ = (x[i + 1] - x[i - 1]) / 2;
+        }
+        density += dfields[i] * dfields[i] / 2;
+        density += Vtotal(fields[i]) - V0;
+        output << x[i] << "\t" << fields[i] << "\t" << density << endl;
     }
-    output << scientific << setprecision(10) << x[x.size() - 1] << "\t" << fields[fields.size() - 1] << "\t" << density
-           << endl;
 }
-void Potential::DumpEnergyDensity(VD x, VVD fields, std::string filename) {
+void Potential::DumpEnergyDensity(VD x, VVD fields, VD dfields, std::string filename) {
     double density;
     std::ofstream output(filename.c_str());
     double V0 = V0_global();
     output << "x\tdensity" << std::endl;
-    for (int i = 0; i < x.size() - 1; i++) {
-        double DeltaZ = x[i + 1] - x[i];
-        double xaver = (x[i + 1] + x[i]) / 2;
-        VD yaver = (fields[i + 1] + fields[i]) / 2;
-        VD ydif = (fields[i + 1] - fields[i]);
-        density = ((ydif / DeltaZ * ydif / DeltaZ) / 2 + Vtotal(yaver) - V0);
-        output << xaver << "\t" << density << std::endl;
+    for (int i = 0; i < x.size(); i++) {
+        double density = 0;
+        double DeltaZ = 0;
+        if (i == 0) {
+            DeltaZ = (x[1] - x[0]) / 2;
+        } else if (i == x.size() - 1) {
+            DeltaZ = (x[i] - x[i - 1]) / 2;
+        } else {
+            DeltaZ = (x[i + 1] - x[i - 1]) / 2;
+        }
+        density += dfields[i] * dfields[i] / 2;
+        density += Vtotal(fields[i]) - V0;
+        output << x[i] << "\t" << density << std::endl;
     }
 }
-double Potential::GetTension(VD x, VVD fields) {
+double Potential::GetTension(VD x, VVD fields, VD dfields) {
     double tension = 0;
     for (size_t i = 0; i < x.size() - 1; i++) {
-        double DeltaZ = x[i + 1] - x[i];
-        VD dfield_dZ = (fields[i + 1] - fields[i]) / DeltaZ;
-        tension += dfield_dZ * dfield_dZ * DeltaZ;
+        double density = 0;
+        double DeltaZ = 0;
+        if (i == 0) {
+            DeltaZ = (x[1] - x[0]) / 2;
+        } else if (i == x.size() - 1) {
+            DeltaZ = (x[i] - x[i - 1]) / 2;
+        } else {
+            DeltaZ = (x[i + 1] - x[i - 1]) / 2;
+        }
+        density += dfields[i] * dfields[i] / 2;
+        tension += density * DeltaZ;
     }
     return tension;
 }
