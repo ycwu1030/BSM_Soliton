@@ -3,17 +3,24 @@
 
 #include "VTypes.h"
 
-class ODE
-{
+namespace BSM_Soliton {
+template <class Stepper>
+class OdeIntegrator {
+    OdeIntegrator();
+    ~OdeIntegrator();
+};
+}  // namespace BSM_Soliton
+
+class ODE {
 private:
     int _DOF;
     double _X_BEGIN;
     double _X_END;
-    
+
     VD _X;
     VVD _Y;
     VVD _dYdX;
-    
+
     VD _BOUND_CONDITION;
     VD _BOUND_BEGIN;
     VD _BOUND_END;
@@ -32,8 +39,6 @@ public:
     void SetYBoundary(VD BOUNDARY);
     void SetYBoundary(VD BOUND_BEGIN, VD BOUND_END, VB BOUND_BEGIN_Q, VB BOUND_END_Q);
     void SetYBoundaryGuess(VD BOUND_GUESS);
-
 };
-
 
 #endif
