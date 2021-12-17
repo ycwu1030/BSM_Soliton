@@ -9,7 +9,7 @@ public:
     ToyZ4();
     ~ToyZ4(){};
 
-    void Set_Potential_Parameters(double beta, double delta_betas);
+    void Set_Potential_Parameters(double beta, double delta_beta);
 
     virtual double V(VD field_values, double scale = 1) override;
     virtual VD dV(VD field_values, double scale = 1) override;
