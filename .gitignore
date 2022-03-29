@@ -38,3 +38,5 @@
 # buildings
 build/
 lib/
+
+.DS_Store
