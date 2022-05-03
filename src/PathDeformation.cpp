@@ -332,15 +332,16 @@ KinknD fullKink(VVD pts_init, VnD V_in, dVnD dV_in, int maxiter, double fixEndCu
     VD Rerr;
     Deformation_Status deform_info;
     for (size_t num_iter = 0; num_iter < maxiter; num_iter++) {
-        // cout<<"Starting Kink step-"<<num_iter+1<<endl;
+        cout << "Starting Kink step-" << num_iter + 1 << endl;
         // * 1. Interpolate the path by spline
         SplinePath path(pts, V_in, V_spline_samples, true);
-        // cout<<"\tGot the spline path"<<endl;
+        cout << "\tGot the spline path" << endl;
         // for (double s = 0; s <= path.GetDistance(); s+= 0.01*path.GetDistance())
         // {
         //     cout<<"\t"<<s<<"\t"<<path.pts_at_dist(s)<<"\t"<<path.V({s},nullptr)<<"\t"<<path.dV({s},nullptr)[0]<<endl;
         // }
         double s = path.GetDistance();
+        cout << "\tGot the distance" << endl;
         // for (size_t i = 0; i < pts.size()*0.1; i++)
         // {
         //     cout<<i<<"\t"<<pts[i]<<endl;
@@ -355,9 +356,9 @@ KinknD fullKink(VVD pts_init, VnD V_in, dVnD dV_in, int maxiter, double fixEndCu
 
         // * 2. Peform 1-D tunneling along the above path;
         Kink1D kink1D(0.0, path.GetDistance(), path.V, path.dV, path.d2V);
-        // cout<<"\tTry to find 1D profile"<<endl;
+        cout << "\tTry to find 1D profile" << endl;
         tie(R, Phi_1D, dPhi_1D, Rerr) = kink1D.findProfile();
-        // cout<<"\tGot 1D tunneling results"<<endl;
+        cout << "\tGot 1D tunneling results" << endl;
         // cout<<"\t"<<R.front()<<"\t"<<Phi_1D.front()<<endl;
         // cout<<"\t"<<R.back()<<"\t"<<Phi_1D.back()<<endl;
         phi = Phi_1D;
@@ -382,7 +383,7 @@ KinknD fullKink(VVD pts_init, VnD V_in, dVnD dV_in, int maxiter, double fixEndCu
         Deformation_Spline deform(pts, dphi, dV_in);
         deform_info = deform.deformPath();
         pts = deform.GetPhi();
-        // cout<<"\tPath deformed"<<endl;
+        cout << "\tPath deformed" << endl;
         // cout<<"\t"<<pts.front()<<"\t"<<pts.back()<<endl;
         // char tmpname[200];
         // sprintf(tmpname,"steps_caches/deform_step_%d.dat",num_iter);
