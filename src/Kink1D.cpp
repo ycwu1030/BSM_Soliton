@@ -54,7 +54,7 @@ void Kink1D::findBarrierLocation() {
     }
 
     // * Find the position where V(phi_bar) === V(phi_meta);
-    cout << "abs(V(phi_abs)-V(phi_meta)): " << abs(V(phi_abs) - V(phi_meta)) << endl;
+    // cout << "abs(V(phi_abs)-V(phi_meta)): " << abs(V(phi_abs) - V(phi_meta)) << endl;
     if (abs(V(phi_abs) - V(phi_meta)) < 1e-3) {
         // * If the V at abs/meta point are quite close, just set the barrier at phi_abs;
         phi_bar = phi_abs;
@@ -82,7 +82,7 @@ void Kink1D::findBarrierLocation() {
     double phi_tol = abs(phi_bar - phi_meta) * 1e-8;
     double x1 = min(phi_bar, phi_meta);
     double x2 = max(phi_bar, phi_meta);
-    cout << "x1: " << x1 << " x2: " << x2 << endl;
+    // cout << "x1: " << x1 << " x2: " << x2 << endl;
     phi_bar_top = find_min_arg_gsl_wraper(func_for_findBarrierTop, this, x2, x1, phi_tol);
     // cout<<"phi_bar_top: "<<phi_bar_top<<endl;
     if (phi_bar_top + phi_tol > x2 || phi_bar_top - phi_tol < x1) {

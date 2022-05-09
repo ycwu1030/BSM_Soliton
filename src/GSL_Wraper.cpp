@@ -43,7 +43,7 @@ double find_min_arg_gsl_wraper(root_func func, void *params, double x_max, doubl
     gsl_min_fminimizer *s = gsl_min_fminimizer_alloc(T);
 
     double low = x_min, high = x_max;
-    double pred = (low + high) / 3;
+    double pred = (low + high) / 2.5;
 
     gsl_function F;
     F.function = func;
